@@ -85,7 +85,7 @@ document.addEventListener("click",async e=>{
  const pg=e.target.closest("[data-page]");if(pg){page=pg.dataset.page;render();return;}
  const el=e.target.closest("[data-action]");if(!el)return;const act=el.dataset.action,id=el.dataset.id;
  const kind=act.includes("course")||act.includes("meeting")?"courses":act.includes("task")||act==="toggle"?"tasks":act.includes("journal")?"journals":"materials";
- const item=workspace[kind]?.find(x=>x.id===id);if(!item)return;
+ const item=workspace[kind]?.find(x=>x.id===id.split(":")[0]);if(!item)return;
  if(act==="toggle"){item.done=!item.done;if(!(await persist()))item.done=!item.done;render();return;}
  if(act==="meeting"||act==="editmeeting"||act==="delmeeting"){
  const parts=id.split(":"),target=workspace.courses.find(x=>x.id===parts[0]),index=Number(parts[1]);if(!target)return;
@@ -108,7 +108,7 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  e.preventDefault();const values=Object.fromEntries(new FormData(form).entries());
  if(form.id==="settingsForm"){const old=structuredClone(workspace.settings);workspace.settings={...workspace.settings,...values,dark:!!form.elements.dark.checked};if(!isPro()&&!["sage","mono"].includes(workspace.settings.theme))workspace.settings.theme="sage";if(!(await persist()))workspace.settings=old;render();return;}
  const kind=({courseForm:"courses",taskForm:"tasks",journalForm:"journals",materialForm:"materials"})[form.id];if(!gate(kind))return;
- if(kind==="courses"){const {day,start,end}=values;if(!/^[0-6]$/.test(day)||!/^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(start)||!/^(?:[01]\\d|2[0-3]):[0-5]\\d$/.test(end)||end<=start){alert("수업 시간을 확인해 주세요.");return;}}
+ if(kind==="courses"){const {day,start,end}=values;if(!/^[0-6]$/.test(day)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end)||end<=start){alert("수업 시간을 확인해 주세요.");return;}}
  if(kind==="materials"&&!/^https?:\/\//.test(values.url)){alert("http 또는 https 링크만 등록할 수 있습니다.");return;}
  await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false}:{})});});
 document.addEventListener("click",async e=>{
