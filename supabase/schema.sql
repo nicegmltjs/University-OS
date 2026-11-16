@@ -20,11 +20,13 @@ drop policy if exists entitlement_select_self on public.entitlements;
 create policy workspace_select_self on public.workspaces for select to authenticated using (auth.uid()=user_id);
 create policy workspace_insert_self on public.workspaces for insert to authenticated with check (auth.uid()=user_id);
 create policy workspace_update_self on public.workspaces for update to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+drop policy if exists workspace_delete_self on public.workspaces;
+create policy workspace_delete_self on public.workspaces for delete to authenticated using (auth.uid()=user_id);
 create policy entitlement_select_self on public.entitlements for select to authenticated using (auth.uid()=user_id);
 -- Prohibit arbitrary clients modifying subscriptions. Only trusted server/service role may write entitlements.
 revoke insert,update,delete on public.entitlements from anon,authenticated;
 grant select on public.entitlements to authenticated;
-grant select,insert,update on public.workspaces to authenticated;
+grant select,insert,update,delete on public.workspaces to authenticated;
 create or replace function public.enforce_workspace_limits()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare p text; expiry timestamptz; counts text[] := array['courses','tasks','journals','materials']; i int;
