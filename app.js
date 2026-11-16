@@ -68,10 +68,18 @@ function timetableView(){
  const last=valid.length?Math.min(24,Math.ceil(Math.max(...valid.map(x=>toMin(x.meeting.end)))/60)):18;
  const height=(last-first)*64;
  const hours=Array.from({length:last-first+1},(_,i)=>'<div class="tt-hour" style="top:'+i*64+'px">'+String(first+i).padStart(2,"0")+':00</div>').join("");
+ const collisions=new Set();
+ for(let i=0;i<valid.length;i++)for(let j=i+1;j<valid.length;j++){
+  const a=valid[i],b=valid[j];
+  if(a.meeting.day===b.meeting.day&&toMin(a.meeting.start)<toMin(b.meeting.end)&&toMin(b.meeting.start)<toMin(a.meeting.end)){
+   collisions.add(a.course.id+":"+a.index);collisions.add(b.course.id+":"+b.index);
+  }
+ }
+ const collisionNotice=collisions.size?'<p class="notice" role="status">시간이 겹치는 수업이 '+collisions.size+'개 있습니다. 시간표에서 붉은 테두리로 표시했습니다.</p>':"";
  const columns=days.map(d=>'<div class="tt-column"><div class="tt-day">'+names[d]+'</div><div class="tt-lane" style="height:'+height+'px">'+
- valid.filter(x=>x.meeting.day===d).map(x=>{const top=(toMin(x.meeting.start)-first*60)*64/60,len=(toMin(x.meeting.end)-toMin(x.meeting.start))*64/60;return '<div class="tt-event" style="top:'+top+'px;height:'+Math.max(26,len-2)+'px;background:'+x.color+'" title="'+safe(x.course.name+' · '+x.meeting.start+'–'+x.meeting.end)+'"><b>'+safe(x.course.name)+'</b><small>'+safe(x.meeting.start+'–'+x.meeting.end)+'</small><small>'+safe(x.course.room||"")+'</small></div>';}).join("")+
+ valid.filter(x=>x.meeting.day===d).map(x=>{const top=(toMin(x.meeting.start)-first*60)*64/60,len=(toMin(x.meeting.end)-toMin(x.meeting.start))*64/60;return '<div class="tt-event" style="top:'+top+'px;height:'+Math.max(26,len-2)+'px;background:'+x.color+';border-left-color:'+(collisions.has(x.course.id+":"+x.index)?"#bd3e4b":"#6a9a78")+'" title="'+safe(x.course.name+' · '+x.meeting.start+'–'+x.meeting.end)+'"><b>'+safe(x.course.name)+'</b><small>'+safe(x.meeting.start+'–'+x.meeting.end)+'</small><small>'+safe(x.course.room||"")+'</small></div>';}).join("")+
  '</div></div>').join("");
- return '<section class="card"><h3>주간 시간표</h3><p class="muted">등록한 수업이 요일과 시간에 맞게 배치됩니다. 모바일에서는 좌우로 스크롤하세요.</p><div class="tt-scroll"><div class="tt-layout"><div class="tt-times"><div class="tt-day">시간</div><div class="tt-time-lane" style="height:'+height+'px">'+hours+'</div></div>'+columns+'</div></div></section>';
+ return '<section class="card"><h3>주간 시간표</h3><p class="muted">등록한 수업이 요일과 시간에 맞게 배치됩니다. 모바일에서는 좌우로 스크롤하세요.</p>'+collisionNotice+'<div class="tt-scroll"><div class="tt-layout"><div class="tt-times"><div class="tt-day">시간</div><div class="tt-time-lane" style="height:'+height+'px">'+hours+'</div></div>'+columns+'</div></div></section>';
 }
 function tasks(){
  title("과제 및 시험","할 일과 마감 관리");
@@ -117,7 +125,7 @@ document.addEventListener("click",async e=>{
  await persist();render();return;
  }
  if(act.startsWith("del")){if(!confirm("정말 삭제할까요?"))return;editing=null;await change(kind,item,true);return;}
- if(act.startsWith("edit")){const field=kind==="journals"?"body":kind==="materials"?"title":kind==="tasks"?"title":"name";const value=prompt("수정할 "+field,item[field]);if(value===null||!value.trim())return;const old=item[field];item[field]=value.trim();if(!(await persist()))item[field]=old;render();}
+ if(act==="editcourse"){const name=prompt("과목 이름",item.name);if(name===null)return;if(!name.trim()){alert("과목 이름을 입력해 주세요.");return;}const room=prompt("강의실 (선택)",item.room||"");if(room===null)return;const old={name:item.name,room:item.room};item.name=name.trim();item.room=room.trim();if(!(await persist()))Object.assign(item,old);render();}
 });
 document.addEventListener("submit",async e=>{const form=e.target;if(!["courseForm","taskForm","journalForm","materialForm","settingsForm"].includes(form.id))return;
  e.preventDefault();const values=Object.fromEntries(new FormData(form).entries());
