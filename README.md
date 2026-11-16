@@ -69,3 +69,10 @@ The app and demo JavaScript were parsed successfully with a JavaScript syntax ch
 ## Backup import regression checks
 
 Run `node --test tests/backup-validation.test.cjs` from the repository root. The tests extract the production validator from `app.js` and cover valid FREE imports, PRO themes, incorrect meeting times, unsafe URLs, duplicate IDs and the 20-journal limit. The import UI also rejects files larger than 2 MB before parsing. These checks do not substitute for live account isolation or browser E2E testing.
+
+## Repeating assignments and searchable records
+
+- Tasks now support one-time, weekly, and daily schedules. Repeating tasks use a per-date completion map, so checking one week does not complete subsequent weeks. The home dashboard shows overdue one-off work and upcoming repeated instances; the calendar renders occurrences for each date.
+- Lecture Journal can be filtered by title, text, course, or date, and Materials by name, URL, or course.
+- Repeat-task regression tests: `node --test tests/recurring-tasks.test.cjs` (run from repo root). Backups accept legacy tasks without a `repeat` field.
+- Remaining QA: real browser end-to-end interaction, search field accessibility, multi-account Supabase tests, payment integration and original public Git history cleanup.
