@@ -174,7 +174,7 @@ document.addEventListener("click",async e=>{
  if(act==="editcourse"){const name=prompt("과목 이름",item.name);if(name===null)return;if(!name.trim()){alert("과목 이름을 입력해 주세요.");return;}const room=prompt("강의실 (선택)",item.room||"");if(room===null)return;const old={name:item.name,room:item.room};item.name=name.trim();item.room=room.trim();if(!(await persist()))Object.assign(item,old);render();}
 });
 document.addEventListener("input",e=>{if(e.target.id==="journalBody"){$("journalPreview").innerHTML=previewMarkdown(e.target.value);}});
-document.addEventListener("change",e=>{if(e.target.id==="journalSearch"){journalQuery=e.target.value;render();}if(e.target.id==="materialSearch"){materialQuery=e.target.value;render();}});
+document.addEventListener("input",e=>{if(e.target.id==="journalSearch"||e.target.id==="materialSearch"){const id=e.target.id,pos=e.target.selectionStart;if(id==="journalSearch")journalQuery=e.target.value;else materialQuery=e.target.value;render();const input=$(id);input?.focus();try{input?.setSelectionRange(pos,pos);}catch{}}});
 document.addEventListener("submit",async e=>{const form=e.target;if(!["courseForm","taskForm","journalForm","materialForm","settingsForm"].includes(form.id))return;
  e.preventDefault();const values=Object.fromEntries(new FormData(form).entries());
  if(form.id==="settingsForm"){const old=structuredClone(workspace.settings);workspace.settings={...workspace.settings,...values,dark:!!form.elements.dark.checked};if(!isPro()&&!["sage","mono"].includes(workspace.settings.theme))workspace.settings.theme="sage";if(!(await persist()))workspace.settings=old;render();return;}
