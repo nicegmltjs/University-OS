@@ -63,12 +63,25 @@ function render(){
  const pages={home,courses,tasks,journals,materials,calendar,settings,plans};
  $("content").innerHTML='<div class="notice"><b>미리보기 모드</b> · 회원가입/결제 없이 기능을 체험할 수 있습니다. 입력한 내용은 현재 브라우저에만 저장됩니다. <button class="btn alt" id="demoToggle">' +(isPro()?"FREE로 보기":"PRO로 보기")+'</button></div>'+(pages[page]||home)();
 }
+
+function localDay(n){const d=new Date(n+"T12:00:00");return d.getDay();}
+function plusDays(n,offset){const d=new Date(n+"T12:00:00");d.setDate(d.getDate()+offset);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function occursOn(task,date){
+ if(task.date>date)return false;
+ if(task.repeat==="daily")return true;
+ if(task.repeat==="weekly")return localDay(task.date)===localDay(date);
+ return task.date===date;
+}
+function occurrenceDone(task,date){return task.repeat&&task.repeat!=="none"?!!(task.doneDates||{})[date]:!!task.done;}
+function datedTasks(date){return workspace.tasks.filter(t=>occursOn(t,date)).map(t=>({...t,occurrenceDate:date,occurrenceComplete:occurrenceDone(t,date)}));}
+function pendingUpcoming(start,count=14){const out=[];for(let i=-7;i<count;i++){const date=plusDays(start,i);for(const task of datedTasks(date))if(!task.occurrenceComplete)out.push(task);}return out.sort((a,b)=>a.occurrenceDate.localeCompare(b.occurrenceDate));}
+
 function home(){
  title("My University","오늘의 학업 현황");
- const pending=workspace.tasks.filter(x=>!x.done).sort((a,b)=>a.date.localeCompare(b.date));
+ const pending=pendingUpcoming(cur(),21);
  const todayDay=new Date().getDay();
  const todayClasses=workspace.courses.flatMap(c=>(c.meetings||[]).filter(m=>m.day===todayDay).map(m=>({name:c.name,room:c.room,start:m.start,end:m.end}))).sort((a,b)=>a.start.localeCompare(b.start));
- return '<div class="cards"><div class="card"><h3>이번 학기</h3><p>'+safe(workspace.settings.semester||"학기를 설정해 주세요")+'</p></div><div class="card"><h3>등록한 과목</h3><p>'+workspace.courses.length+'개</p></div><div class="card"><h3>미완료 과제</h3><p>'+pending.length+'개</p></div></div><div class="cards"><section class="card"><h3>오늘 수업</h3>'+ (todayClasses.map(c=>'<div class="item"><div><b>'+safe(c.name)+'</b><p class="muted">'+safe(c.start+"–"+c.end)+' · '+safe(c.room||"강의실 미설정")+'</p></div></div>').join("")||'<p class="muted">오늘 등록된 수업이 없습니다.</p>')+'</section><section class="card"><h3>마감 임박 · 미완료</h3>'+ (pending.slice(0,6).map(t=>'<div class="item"><div><b>'+safe(t.title)+'</b><p class="'+(t.date<cur()?"error":"muted")+'">'+(t.date<cur()?"기한 지남 · ":"")+safe(t.date)+' · '+safe(courseName(t.course_id))+'</p></div>'+action("toggle",t.id,"완료")+'</div>').join("")||'<p class="muted">미완료 일정이 없습니다.</p>')+'</section></div><div class="actions"><button class="btn" data-page="tasks">+ 과제 등록</button><button class="btn alt" data-page="courses">과목 설정</button></div>';
+ return '<div class="cards"><div class="card"><h3>이번 학기</h3><p>'+safe(workspace.settings.semester||"학기를 설정해 주세요")+'</p></div><div class="card"><h3>등록한 과목</h3><p>'+workspace.courses.length+'개</p></div><div class="card"><h3>미완료 과제</h3><p>'+workspace.tasks.filter(x=>!x.done).length+'개</p></div></div><div class="cards"><section class="card"><h3>오늘 수업</h3>'+ (todayClasses.map(c=>'<div class="item"><div><b>'+safe(c.name)+'</b><p class="muted">'+safe(c.start+"–"+c.end)+' · '+safe(c.room||"강의실 미설정")+'</p></div></div>').join("")||'<p class="muted">오늘 등록된 수업이 없습니다.</p>')+'</section><section class="card"><h3>마감 임박 · 미완료</h3>'+ (pending.slice(0,6).map(t=>'<div class="item"><div><b>'+safe(t.title)+'</b><p class="'+(t.occurrenceDate<cur()?"error":"muted")+'">'+(t.date<cur()?"기한 지남 · ":"")+safe(t.occurrenceDate)+' · '+safe(courseName(t.course_id))+'</p></div>'+action("toggle",t.id+"@"+t.occurrenceDate,"완료")+'</div>').join("")||'<p class="muted">미완료 일정이 없습니다.</p>')+'</section></div><div class="actions"><button class="btn" data-page="tasks">+ 과제 등록</button><button class="btn alt" data-page="courses">과목 설정</button></div>';
 }
 function courses(){
  title("과목 및 시간표","과목을 등록하면 주간 시간표에 자동으로 표시됩니다");
@@ -103,8 +116,8 @@ function timetableView(){
 function tasks(){
  title("과제 및 시험","할 일과 마감 관리");
  const entry=editing?.kind==="tasks"?workspace.tasks.find(t=>t.id===editing.id):null;
- const kinds=[["task","과제"],["exam","시험"]];
- return '<section class="card"><h3>'+(entry?"일정 수정":"새 일정")+' · '+workspace.tasks.length+'/'+limits("tasks")+'</h3><form id="taskForm"><div class="field"><label>제목<input name="title" required maxlength="120" value="'+safe(entry?.title||"")+'"></label></div><div class="cards"><label class="field">과목<select name="course_id">'+choices(entry?.course_id)+'</select></label><label class="field">마감일<input name="date" type="date" required value="'+safe(entry?.date||cur())+'"></label><label class="field">구분<select name="kind">'+kinds.map(([v,t])=>'<option value="'+v+'" '+((entry?.kind||"task")===v?"selected":"")+'>'+t+'</option>').join("")+'</select></label></div><div class="actions"><button class="btn">'+(entry?"변경 저장":"일정 추가")+'</button>'+(entry?'<button type="button" class="btn alt" data-action="cancelEdit">취소</button>':"")+'</div></form></section><section class="card"><h3>등록한 일정</h3>'+ (workspace.tasks.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>'<div class="item"><div><b style="'+(t.done?'text-decoration:line-through':'')+'">'+safe(t.title)+'</b><p class="muted">'+safe(t.date)+' · '+safe(courseName(t.course_id))+' · '+(t.kind==="exam"?"시험":"과제")+'</p></div><div class="actions">'+action("toggle",t.id,t.done?"미완료":"완료")+action("edittask",t.id,"수정")+action("deltask",t.id,"삭제",true)+'</div></div>').join("")||'<p class="muted">아직 등록한 일정이 없습니다.</p>')+'</section>';
+ const kinds=[["task","과제"],["exam","시험"]];const repeats=[["none","반복 안 함"],["weekly","매주"],["daily","매일"]];
+ return '<section class="card"><h3>'+(entry?"일정 수정":"새 일정")+' · '+workspace.tasks.length+'/'+limits("tasks")+'</h3><form id="taskForm"><div class="field"><label>제목<input name="title" required maxlength="120" value="'+safe(entry?.title||"")+'"></label></div><div class="cards"><label class="field">과목<select name="course_id">'+choices(entry?.course_id)+'</select></label><label class="field">마감일<input name="date" type="date" required value="'+safe(entry?.date||cur())+'"></label><label class="field">구분<select name="kind">'+kinds.map(([v,t])=>'<option value="'+v+'" '+((entry?.kind||"task")===v?"selected":"")+'>'+t+'</option>').join("")+'</select></label><label class="field">반복<select name="repeat">'+repeats.map(([v,t])=>'<option value="'+v+'" '+((entry?.repeat||"none")===v?"selected":"")+'>'+t+'</option>').join("")+'</select></label></div><div class="actions"><button class="btn">'+(entry?"변경 저장":"일정 추가")+'</button>'+(entry?'<button type="button" class="btn alt" data-action="cancelEdit">취소</button>':"")+'</div></form></section><section class="card"><h3>등록한 일정</h3>'+ (workspace.tasks.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(t=>'<div class="item"><div><b style="'+(t.done?'text-decoration:line-through':'')+'">'+safe(t.title)+'</b><p class="muted">'+safe(t.date)+' · '+safe(courseName(t.course_id))+' · '+(t.kind==="exam"?"시험":"과제")+(t.repeat&&t.repeat!=="none"?" · "+(t.repeat==="weekly"?"매주 반복":"매일 반복"):"")+'</p></div><div class="actions">'+action("toggle",t.id,t.done?"미완료":"완료")+action("edittask",t.id,"수정")+action("deltask",t.id,"삭제",true)+'</div></div>').join("")||'<p class="muted">아직 등록한 일정이 없습니다.</p>')+'</section>';
 }
 function journals(){
  title("Lecture Journal","수업 기록과 복습");
@@ -124,10 +137,10 @@ function calendar(){
  const days=Array.from({length:(first.getDay()+6)%7},()=>'<div></div>');
  for(let d=1;d<=last.getDate();d++){
   const date=year+'-'+month+'-'+String(d).padStart(2,'0'),dow=new Date(year,first.getMonth(),d).getDay();
-  const tasks=workspace.tasks.filter(t=>t.date===date);
+  const tasks=datedTasks(date);
   const inTerm=(!workspace.settings.start||date>=workspace.settings.start)&&(!workspace.settings.end||date<=workspace.settings.end);
   const courses=inTerm?workspace.courses.flatMap(c=>(c.meetings||[]).filter(m=>m.day===dow).map(m=>({name:c.name,start:m.start}))):[];
-  days.push('<div class="day '+(date===cur()?'today':'')+'"><strong>'+d+'</strong>'+courses.map(c=>'<div class="cal-class">'+safe(c.name)+' '+safe(c.start)+'</div>').join('')+tasks.map(t=>'<div class="cal-task">'+(t.done?"✓ ":"• ")+safe(t.title)+'</div>').join('')+'</div>');
+  days.push('<div class="day '+(date===cur()?'today':'')+'"><strong>'+d+'</strong>'+courses.map(c=>'<div class="cal-class">'+safe(c.name)+' '+safe(c.start)+'</div>').join('')+tasks.map(t=>'<div class="cal-task">'+(t.occurrenceComplete?"✓ ":"• ")+safe(t.title)+'</div>').join('')+'</div>');
  }
  return '<section class="card"><div class="actions" style="justify-content:space-between"><h3>'+year+'년 '+(first.getMonth()+1)+'월</h3><div class="actions"><button class="btn alt" data-action="prevMonth">←</button><button class="btn alt" data-action="todayMonth">이번 달</button><button class="btn alt" data-action="nextMonth">→</button></div></div><p class="muted">수업은 연녹색, 과제·시험은 보라색으로 표시됩니다.</p><div class="tt-scroll"><div class="calendar-grid" style="min-width:600px">'+["월","화","수","목","금","토","일"].map(x=>'<b>'+x+'</b>').join("")+days.join("")+'</div></div></section>';
 }
@@ -142,8 +155,8 @@ document.addEventListener("click",async e=>{
  if(act==="prevMonth"||act==="nextMonth"||act==="todayMonth"){monthOffset=act==="todayMonth"?0:monthOffset+(act==="prevMonth"?-1:1);render();return;}
  if(["edittask","editjournal","editmaterial"].includes(act)){editing={kind:act==="edittask"?"tasks":act==="editjournal"?"journals":"materials",id};page=editing.kind;render();window.scrollTo(0,0);return;}
  const kind=act.includes("course")||act.includes("meeting")?"courses":act.includes("task")||act==="toggle"?"tasks":act.includes("journal")?"journals":"materials";
- const item=workspace[kind]?.find(x=>x.id===id.split(":")[0]);if(!item)return;
- if(act==="toggle"){item.done=!item.done;if(!(await persist()))item.done=!item.done;render();return;}
+ const item=workspace[kind]?.find(x=>x.id===id.split(":")[0].split("@")[0]);if(!item)return;
+ if(act==="toggle"){const date=id.split("@")[1]||cur();const before=structuredClone(item);if(item.repeat&&item.repeat!=="none"){item.doneDates={...(item.doneDates||{}),[date]:!occurrenceDone(item,date)};}else item.done=!item.done;if(!(await persist()))Object.assign(item,before);render();return;}
  if(act==="meeting"||act==="editmeeting"||act==="delmeeting"){
  const parts=id.split(":"),target=workspace.courses.find(x=>x.id===parts[0]),index=Number(parts[1]);if(!target)return;
  if(act==="delmeeting"){if(!confirm("이 수업 시간만 삭제할까요?"))return;target.meetings.splice(index,1);await persist();render();return;}
@@ -168,9 +181,10 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  const current=editing?.kind===kind?workspace[kind].find(x=>x.id===editing.id):null;
  if(!current&&!gate(kind))return;
  if(kind==="courses"){const {day,start,end}=values;if(!/^[0-6]$/.test(day)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end)||end<=start){alert("수업 시간을 확인해 주세요.");return;}}
+ if(kind==="tasks"&&!["none","weekly","daily"].includes(values.repeat||"none")){alert("올바른 반복 설정을 선택해 주세요.");return;}
  if(kind==="materials"&&!/^https?:\/\//i.test(values.url)){alert("http 또는 https 링크만 등록할 수 있습니다.");return;}
- if(current){const before=structuredClone(current);Object.assign(current,values);if(!(await persist()))Object.assign(current,before);editing=null;render();return;}
- await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false}:{})});});
+ if(current){const before=structuredClone(current);Object.assign(current,values);if(kind==="tasks"&&(before.date!==values.date||before.repeat!==values.repeat))current.doneDates={};if(!(await persist()))Object.assign(current,before);editing=null;render();return;}
+ await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false,doneDates:{}}:{})});});
 document.addEventListener("click",async e=>{
  if(e.target.id==="demoReset"){if(confirm("데모에 입력한 데이터를 모두 초기화할까요?")){localStorage.removeItem("uos-demo-v1");workspace=defaults();plan="free";localStorage.setItem("uos-demo-plan","free");render();}} if(e.target.id==="demoToggle"){plan=isPro()?"free":"pro";localStorage.setItem("uos-demo-plan",plan);render();}
  if(e.target.id==="export"){const blob=new Blob([JSON.stringify({version:2,data:workspace},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="university-os-backup.json";a.click();URL.revokeObjectURL(url);}
@@ -202,7 +216,7 @@ function validateBackupFile(raw,pro=false){
   if(!str(c.name,60)||!c.name.trim()||!str(c.room||"",100)||!Array.isArray(c.meetings)||c.meetings.length>50)throw Error("과목 정보가 올바르지 않습니다.");
   for(const m of c.meetings){if(!m||!Number.isInteger(m.day)||m.day<0||m.day>6||!time(m.start)||!time(m.end)||m.start>=m.end)throw Error("잘못된 수업 시간입니다.");}
  }
- for(const t of d.tasks){if(!str(t.title,120)||!t.title.trim()||!date(t.date)||!["task","exam"].includes(t.kind)||typeof t.done!=="boolean"||!str(t.course_id||"",100))throw Error("과제·시험 데이터가 올바르지 않습니다.");}
+ for(const t of d.tasks){if(!str(t.title,120)||!t.title.trim()||!date(t.date)||!["task","exam"].includes(t.kind)||!["none","weekly","daily",undefined].includes(t.repeat)||typeof t.done!=="boolean"||!str(t.course_id||"",100)||t.doneDates&&typeof t.doneDates!=="object")throw Error("과제·시험 데이터가 올바르지 않습니다.");}
  for(const j of d.journals){if(!str(j.title,100)||!j.title.trim()||!str(j.body,100000)||!date(j.date)||!str(j.course_id||"",100))throw Error("강의 기록 데이터가 올바르지 않습니다.");}
  for(const m of d.materials){if(!str(m.title,120)||!m.title.trim()||!str(m.url,2000)||!/^https?:\/\//i.test(m.url)||!str(m.course_id||"",100))throw Error("자료 링크가 올바르지 않습니다.");}
  return {settings:{semester:d.settings.semester||"",start:d.settings.start||"",end:d.settings.end||"",theme:d.settings.theme,dark:!!d.settings.dark},courses:d.courses,tasks:d.tasks,journals:d.journals,materials:d.materials};
