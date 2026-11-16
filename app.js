@@ -11,10 +11,11 @@ const cur=()=>new Date().toLocaleDateString("sv-SE");
 function message(text,type="error"){const el=$("message");if(el){el.textContent=text;el.className=type;}}
 function authView(){const ready=!!(cfg.supabaseUrl&&cfg.supabaseAnonKey);
  $("app").classList.add("hidden");$("auth").classList.remove("hidden");
- $("auth").innerHTML='<div class="card"><h1>✳ University OS</h1><p class="muted">나만의 대학 생활을 한곳에서 관리하세요.</p>'+(ready?'<form id="authform"><label class="field">이메일<input id="email" type="email" required autocomplete="email"></label><label class="field">비밀번호<input id="password" type="password" minlength="6" required autocomplete="current-password"></label><div class="actions"><button class="btn" type="submit" value="login">로그인</button><button class="btn alt" type="button" id="signup">회원가입</button></div></form><p class="muted">회원가입 시 이메일 확인이 필요할 수 있습니다.</p>':'<p class="notice">아직 서비스 설정이 완료되지 않았습니다. 운영자가 Supabase 연결 정보를 등록하면 회원가입과 로그인을 이용할 수 있습니다.</p>')+'<p id="message" aria-live="polite"></p></div>';
+ $("auth").innerHTML='<div class="card"><h1>✳ University OS</h1><p class="muted">나만의 대학 생활을 한곳에서 관리하세요.</p>'+(ready?'<form id="authform"><label class="field">이메일<input id="email" type="email" required autocomplete="email"></label><label class="field">비밀번호<input id="password" type="password" minlength="6" required autocomplete="current-password"></label><div class="actions"><button class="btn" type="submit" value="login">로그인</button><button class="btn alt" type="button" id="signup">회원가입</button><button class="btn alt" type="button" id="resetPassword">비밀번호 재설정</button></div></form><p class="muted">회원가입 시 이메일 확인이 필요할 수 있습니다.</p>':'<p class="notice">아직 서비스 설정이 완료되지 않았습니다. 운영자가 Supabase 연결 정보를 등록하면 회원가입과 로그인을 이용할 수 있습니다.</p>')+'<p id="message" aria-live="polite"></p></div>';
  if(!ready)return;
  $("authform").onsubmit=async e=>{e.preventDefault();await authenticate(false);};
  $("signup").onclick=()=>authenticate(true);
+ $("resetPassword").onclick=async()=>{const email=$("email").value.trim();if(!email){message("이메일 주소를 먼저 입력해 주세요.");return;}const {error}=await supa.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});message(error?error.message:"계정이 있다면 비밀번호 재설정 안내 메일이 발송됩니다.",error?"error":"success");};
 }
 async function authenticate(create){const email=$("email").value.trim(),password=$("password").value;
  if(!email||password.length<6){message("이메일과 6자 이상 비밀번호를 입력해 주세요.");return;}
@@ -23,6 +24,7 @@ async function authenticate(create){const email=$("email").value.trim(),password
  if(create){message("가입 요청이 접수되었습니다. 이메일 인증이 설정돼 있다면 메일을 확인해 주세요.","success");return;}
  await enter();
 }
+function showRecovery(){ $("app").classList.add("hidden");$("auth").classList.remove("hidden");$("auth").innerHTML='<div class="card"><h1>비밀번호 변경</h1><form id="recoveryForm"><label class="field">새 비밀번호<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" required></label><button class="btn">비밀번호 변경</button></form><p id="message" aria-live="polite"></p></div>';$("recoveryForm").onsubmit=async e=>{e.preventDefault();const pwd=$("recoveryPassword").value;const {error}=await supa.auth.updateUser({password:pwd});if(error){message(error.message);return;}message("비밀번호가 변경되었습니다. 로그인 후 이용해 주세요.","success");await supa.auth.signOut();setTimeout(authView,250);};}
 async function enter(){const {data:{user:u}}=await supa.auth.getUser();user=u;if(!user){authView();return;}
  const {data:space,error}=await supa.from("workspaces").select("data").eq("user_id",user.id).maybeSingle();
  if(error){authView();message("데이터 조회 실패: "+error.message);return;}
@@ -32,9 +34,11 @@ async function enter(){const {data:{user:u}}=await supa.auth.getUser();user=u;if
  plan=ent?.plan==="pro"&&(!ent.expires_at||new Date(ent.expires_at)>new Date())?"pro":"free";
  $("auth").classList.add("hidden");$("app").classList.remove("hidden");render();
 }
-async function persist(){if(busy)return false;busy=true;
- try{const {error}=await supa.from("workspaces").upsert({user_id:user.id,data:workspace},{onConflict:"user_id"});if(error)throw error;return true;}
- catch(err){alert("저장 실패: "+err.message);return false;}finally{busy=false;}}
+let writeQueue=Promise.resolve();
+async function persist(){const snap=structuredClone(workspace),owner=user?.id;if(!owner)return false;
+ const job=writeQueue.catch(()=>{}).then(async()=>{const {error}=await supa.from("workspaces").upsert({user_id:owner,data:snap},{onConflict:"user_id"});if(error)throw error;return true;});writeQueue=job.catch(()=>{});
+ try{return await job;}catch(err){alert("저장 실패: "+err.message);return false;}
+}
 const limits=(k)=>isPro()||!(k in caps)?"무제한":caps[k];
 const atLimit=k=>!isPro()&&(k in caps)&&workspace[k].length>=caps[k];
 function gate(k){if(atLimit(k)){alert("FREE "+({courses:"과목",tasks:"과제",journals:"강의 기록",materials:"자료"}[k])+"은 최대 "+caps[k]+"개입니다. PRO에서 제한을 해제할 수 있습니다.");page="plans";render();return false;}return true;}
@@ -224,5 +228,5 @@ function validateBackupFile(raw,pro=false){
 }
 
 document.addEventListener("change",async e=>{if(e.target.id!=="importfile")return;const file=e.target.files[0];if(!file)return;try{if(file.size>2*1024*1024)throw Error("백업 파일이 2MB를 초과합니다.");const parsed=JSON.parse(await file.text()),d=validateBackupFile(parsed,isPro());if(!confirm("현재 데이터를 백업 데이터로 바꿀까요?"))return;const old=workspace;workspace=d;if(!(await persist()))workspace=old;render();}catch(err){alert(err.message)}});
-async function init(){if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){authView();return;}try{supa=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data:{session}}=await supa.auth.getSession();if(session)await enter();else authView();supa.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){user=null;authView();}});}catch(err){authView();message(err.message);}}
+async function init(){if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){authView();return;}try{supa=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data:{session}}=await supa.auth.getSession();if(session)await enter();else authView();supa.auth.onAuthStateChange((event)=>{if(event==="PASSWORD_RECOVERY"){showRecovery();}else if(event==="SIGNED_OUT"){user=null;authView();}});}catch(err){authView();message(err.message);}}
 init();
