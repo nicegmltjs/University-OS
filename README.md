@@ -65,3 +65,7 @@ This is a beta implementation, not an operational paid service.
 
 ### Automated checks performed
 The app and demo JavaScript were parsed successfully with a JavaScript syntax check. End-to-end browser interaction, accessibility and live Supabase/payment QA have **not** been completed.
+
+## Backup import regression checks
+
+Run `node --test tests/backup-validation.test.cjs` from the repository root. The tests extract the production validator from `app.js` and cover valid FREE imports, PRO themes, incorrect meeting times, unsafe URLs, duplicate IDs and the 20-journal limit. The import UI also rejects files larger than 2 MB before parsing. These checks do not substitute for live account isolation or browser E2E testing.
