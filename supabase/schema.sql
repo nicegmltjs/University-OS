@@ -27,7 +27,7 @@ grant select on public.entitlements to authenticated;
 grant select,insert,update on public.workspaces to authenticated;
 create or replace function public.enforce_workspace_limits()
 returns trigger language plpgsql security definer set search_path = public as $$
-declare p text; expiry timestamptz; counts text[] := array['courses','tasks','journals','materials']; caps int[] := array[5,30,15,15]; i int;
+declare p text; expiry timestamptz; counts text[] := array['courses','tasks','journals','materials']; i int;
 begin
  if jsonb_typeof(new.data) <> 'object' then raise exception 'Workspace must be an object'; end if;
  for i in 1..4 loop
@@ -35,9 +35,7 @@ begin
  end loop;
  select plan,expires_at into p,expiry from public.entitlements where user_id=new.user_id;
  if p='pro' and (expiry is null or expiry>now()) then return new; end if;
- for i in 1..4 loop
-  if jsonb_array_length(new.data->counts[i])>caps[i] then raise exception 'FREE plan % limit is %',counts[i],caps[i]; end if;
- end loop;
+ if jsonb_array_length(new.data->'journals')>20 then raise exception 'FREE plan journals limit is 20'; end if;
  if coalesce(new.data#>>'{settings,theme}','sage') not in ('sage','mono') then raise exception 'FREE theme is restricted'; end if;
  new.updated_at=now();
  return new;
