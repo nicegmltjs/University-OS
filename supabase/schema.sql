@@ -35,10 +35,19 @@ begin
  for i in 1..4 loop
   if jsonb_typeof(new.data->counts[i]) <> 'array' then raise exception 'Invalid workspace field %',counts[i]; end if;
  end loop;
+ if pg_column_size(new.data)>2000000 then raise exception 'Workspace exceeds maximum size'; end if;
  select plan,expires_at into p,expiry from public.entitlements where user_id=new.user_id;
  if p='pro' and (expiry is null or expiry>now()) then return new; end if;
- if jsonb_array_length(new.data->'journals')>20 then raise exception 'FREE plan journals limit is 20'; end if;
- if coalesce(new.data#>>'{settings,theme}','sage') not in ('sage','mono') then raise exception 'FREE theme is restricted'; end if;
+ -- A subscription expiry must not lock users out of editing or deleting existing work.
+ -- Existing over-quota records may remain, but the count cannot increase after downgrade.
+ if jsonb_array_length(new.data->'journals')>20 and (
+   tg_op = 'INSERT'
+   or jsonb_array_length(new.data->'journals')>jsonb_array_length(old.data->'journals')
+ ) then raise exception 'FREE plan journals limit is 20'; end if;
+ if coalesce(new.data#>>'{settings,theme}','sage') not in ('sage','mono') and (
+   tg_op='INSERT'
+   or new.data#>>'{settings,theme}' is distinct from old.data#>>'{settings,theme}'
+ ) then raise exception 'FREE theme is restricted'; end if;
  new.updated_at=now();
  return new;
 end;$$;
