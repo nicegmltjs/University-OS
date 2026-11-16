@@ -1,0 +1,22 @@
+name: University OS quality checks
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [feature/multiuser-freemium]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Regression tests
+        run: node --test tests/*.test.cjs
+      - name: Verify demo file exists and has no personal course seed
+        run: |
+          test -f demo.html
+          node -e "const f=require('fs').readFileSync('demo.html','utf8');if(!f.includes('function timetableView()')||!f.includes('function previewMarkdown('))process.exit(1);"
