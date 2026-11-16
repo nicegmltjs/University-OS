@@ -163,6 +163,37 @@ document.addEventListener("click",async e=>{
  if(e.target.id==="deleteaccount")alert("계정 및 서버 데이터 삭제 요청은 운영자에게 문의해 주세요. 셀프 삭제 기능은 정식 출시 전에 제공됩니다.");
  if(e.target.id==="checkout"){if(!cfg.paymentEnabled)return;const {data,error}=await supa.functions.invoke("create-checkout",{body:{}});if(error||!data?.checkoutUrl){alert("결제 시작 실패: "+(error?.message||"설정 확인 필요"));return;}location.href=data.checkoutUrl;}
 });
-document.addEventListener("change",async e=>{if(e.target.id!=="importfile")return;const file=e.target.files[0];if(!file)return;try{const parsed=JSON.parse(await file.text()),d=parsed.data;if(!d||!["courses","tasks","journals","materials"].every(k=>Array.isArray(d[k])))throw Error("파일 형식 오류");if(!isPro()&&Object.keys(caps).some(k=>d[k].length>caps[k]))throw Error("무료 이용 개수 제한을 초과한 백업 파일입니다.");if(!confirm("현재 데이터를 백업 데이터로 바꿀까요?"))return;const old=workspace;workspace=d;if(!(await persist()))workspace=old;render();}catch(err){alert(err.message)}});
+
+function validateBackupFile(raw,pro=false){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw)||raw.version!==2)throw Error("지원하지 않는 백업 형식입니다.");
+ const d=raw.data;
+ if(!d||typeof d!=="object"||Array.isArray(d)||!d.settings||typeof d.settings!=="object")throw Error("설정 데이터가 누락되었습니다.");
+ const keys=["courses","tasks","journals","materials"],ids=new Set();
+ for(const k of keys){
+  if(!Array.isArray(d[k])||d[k].length>20000)throw Error("잘못된 "+k+" 목록입니다.");
+  for(const x of d[k]){
+   if(!x||typeof x!=="object"||Array.isArray(x)||typeof x.id!=="string"||!x.id||x.id.length>100||ids.has(x.id))throw Error("잘못되거나 중복된 데이터 ID가 있습니다.");
+   ids.add(x.id);
+  }
+ }
+ const str=(x,max)=>typeof x==="string"&&x.length<=max;
+ const date=x=>str(x,10)&&/^\d{4}-\d{2}-\d{2}$/.test(x)&&!Number.isNaN(new Date(x+"T00:00:00").getTime());
+ const time=x=>str(x,5)&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(x);
+ if(!str(d.settings.semester||"",100)||!str(d.settings.start||"",10)||!str(d.settings.end||"",10))throw Error("학기 설정이 올바르지 않습니다.");
+ if(d.settings.start&&!date(d.settings.start)||d.settings.end&&!date(d.settings.end))throw Error("학기 날짜가 올바르지 않습니다.");
+ if(d.settings.start&&d.settings.end&&d.settings.end<d.settings.start)throw Error("학기 종료일이 시작일보다 빠릅니다.");
+ if(!["sage","rose","peach","lavender","blue","mono"].includes(d.settings.theme))throw Error("올바르지 않은 테마입니다.");
+ if(!pro&&(d.journals.length>20||!["sage","mono"].includes(d.settings.theme)))throw Error("FREE 이용 범위 밖의 기록 또는 테마가 포함되어 있습니다.");
+ for(const c of d.courses){
+  if(!str(c.name,60)||!c.name.trim()||!str(c.room||"",100)||!Array.isArray(c.meetings)||c.meetings.length>50)throw Error("과목 정보가 올바르지 않습니다.");
+  for(const m of c.meetings){if(!m||!Number.isInteger(m.day)||m.day<0||m.day>6||!time(m.start)||!time(m.end)||m.start>=m.end)throw Error("잘못된 수업 시간입니다.");}
+ }
+ for(const t of d.tasks){if(!str(t.title,120)||!t.title.trim()||!date(t.date)||!["task","exam"].includes(t.kind)||typeof t.done!=="boolean"||!str(t.course_id||"",100))throw Error("과제·시험 데이터가 올바르지 않습니다.");}
+ for(const j of d.journals){if(!str(j.title,100)||!j.title.trim()||!str(j.body,100000)||!date(j.date)||!str(j.course_id||"",100))throw Error("강의 기록 데이터가 올바르지 않습니다.");}
+ for(const m of d.materials){if(!str(m.title,120)||!m.title.trim()||!str(m.url,2000)||!/^https?:\/\//i.test(m.url)||!str(m.course_id||"",100))throw Error("자료 링크가 올바르지 않습니다.");}
+ return {settings:{semester:d.settings.semester||"",start:d.settings.start||"",end:d.settings.end||"",theme:d.settings.theme,dark:!!d.settings.dark},courses:d.courses,tasks:d.tasks,journals:d.journals,materials:d.materials};
+}
+
+document.addEventListener("change",async e=>{if(e.target.id!=="importfile")return;const file=e.target.files[0];if(!file)return;try{if(file.size>2*1024*1024)throw Error("백업 파일이 2MB를 초과합니다.");const parsed=JSON.parse(await file.text()),d=validateBackupFile(parsed,isPro());if(!confirm("현재 데이터를 백업 데이터로 바꿀까요?"))return;const old=workspace;workspace=d;if(!(await persist()))workspace=old;render();}catch(err){alert(err.message)}});
 async function init(){if(!cfg.supabaseUrl||!cfg.supabaseAnonKey){authView();return;}try{supa=createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data:{session}}=await supa.auth.getSession();if(session)await enter();else authView();supa.auth.onAuthStateChange((event)=>{if(event==="SIGNED_OUT"){user=null;authView();}});}catch(err){authView();message(err.message);}}
 init();
