@@ -43,3 +43,25 @@ Recommended backend flow:
 - \`supabase/schema.sql\`: database, RLS and quotas
 
 This is a beta implementation, not an operational paid service.
+
+## Current demo preview (no accounts required)
+- Download `demo.html` from this branch and open it locally in a modern browser. It runs entirely in the browser with a separate `uos-demo-v1` localStorage key. No signup, Supabase, or payment configuration is required for the demo.
+- The demo can switch FREE/PRO for display testing; this is **not** a real subscription.
+- Create subjects with weekday, start/end time and room; the weekly timetable updates automatically. Add multiple meetings to one subject, edit/remove meetings and see overlapping class warnings.
+- Use complete edit forms for tasks, lecture notes and material links; calendars include class schedules and dated tasks; home includes overdue tasks and today's meetings.
+- Editing records at the FREE journal limit must stay possible, while creating a 21st note is blocked.
+- Local browser storage is **not** synced to the production app. Export JSON before clearing browser site data.
+
+## QA checklist before release
+- [ ] Sign up / login / logout with two different accounts and validate user-specific data isolation
+- [ ] Add, edit, delete and persist course meetings; validate overlapping and overnight input behavior
+- [ ] Test same course meeting multiple weekdays, mobile timetable horizontal scrolling, calendar month navigation
+- [ ] Edit all task/note/material fields, including when FREE limit has been reached
+- [ ] Test JSON import/export with valid, malformed and oversized files; add strict import schema validation
+- [ ] Verify keyboard navigation, screen reader labels and responsive layout in browsers
+- [ ] Validate database-side FREE cap and protected PRO plan changes
+- [ ] Implement and test checkout only after trusted webhook and merchant account setup
+- [ ] Remove original personalized content from public main and commit history safely
+
+### Automated checks performed
+The app and demo JavaScript were parsed successfully with a JavaScript syntax check. End-to-end browser interaction, accessibility and live Supabase/payment QA have **not** been completed.
