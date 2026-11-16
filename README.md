@@ -6,7 +6,7 @@ This branch replaces the original personal prototype with a generic app. It has 
 - Email/password signup and login via Supabase Auth (email confirmation according to Supabase settings)
 - Row-level-security protected per-user JSON workspace
 - Editable semester, courses, timetable meetings, tasks/exams, lecture journals, and resource links
-- FREE quotas: 5 courses, 30 tasks, 15 lecture journals, 15 resources; 2 themes
+- FREE: unlimited courses, tasks and resource links; 20 lecture journals and 2 themes
 - PRO entitlement read from a protected table, higher quotas and 6 themes
 - JSON export/import
 - Mobile responsive layout
