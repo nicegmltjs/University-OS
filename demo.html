@@ -282,7 +282,7 @@ function validResourceUrl(value){try{const url=new URL(value);return ["http:","h
 function validateBackupFile(raw,pro=false){
  if(!raw||typeof raw!=="object"||Array.isArray(raw)||raw.version!==2)throw Error("지원하지 않는 백업 형식입니다.");
  const d=raw.data;
- if(!d||typeof d!=="object"||Array.isArray(d)||!d.settings||typeof d.settings!=="object")throw Error("설정 데이터가 누락되었습니다.");
+ if(!d||typeof d!=="object"||Array.isArray(d)||!d.settings||typeof d.settings!=="object"||Array.isArray(d.settings))throw Error("설정 데이터가 누락되었습니다.");
  const keys=["courses","tasks","journals","materials"],ids=new Set();
  for(const k of keys){
   if(!Array.isArray(d[k])||d[k].length>20000)throw Error("잘못된 "+k+" 목록입니다.");
@@ -294,7 +294,7 @@ function validateBackupFile(raw,pro=false){
  const str=(x,max)=>typeof x==="string"&&x.length<=max;
  const date=x=>{if(!str(x,10)||!/^\d{4}-\d{2}-\d{2}$/.test(x))return false;const parsed=new Date(x+"T12:00:00Z");return !Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===x;};
  const time=x=>str(x,5)&&/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(x);
- if(!str(d.settings.semester||"",100)||!str(d.settings.start||"",10)||!str(d.settings.end||"",10))throw Error("학기 설정이 올바르지 않습니다.");
+ if(!str(d.settings.semester||"",100)||!str(d.settings.start||"",10)||!str(d.settings.end||"",10)||typeof d.settings.dark!=="boolean")throw Error("학기 설정이 올바르지 않습니다.");
  if(d.settings.start&&!date(d.settings.start)||d.settings.end&&!date(d.settings.end))throw Error("학기 날짜가 올바르지 않습니다.");
  if(d.settings.start&&d.settings.end&&d.settings.end<d.settings.start)throw Error("학기 종료일이 시작일보다 빠릅니다.");
  if(!["sage","rose","peach","lavender","blue","mono"].includes(d.settings.theme))throw Error("올바르지 않은 테마입니다.");
@@ -306,6 +306,8 @@ function validateBackupFile(raw,pro=false){
  for(const t of d.tasks){if(!str(t.title,120)||!t.title.trim()||!date(t.date)||!["task","exam","event"].includes(t.kind)||!["none","weekly","daily",undefined].includes(t.repeat)||typeof t.done!=="boolean"||!str(t.course_id||"",100)||t.doneDates&&(!t.doneDates||typeof t.doneDates!=="object"||Array.isArray(t.doneDates)||Object.entries(t.doneDates).some(([day,done])=>!date(day)||typeof done!=="boolean")))throw Error("과제·시험 데이터가 올바르지 않습니다.");}
  for(const j of d.journals){if(!str(j.title,100)||!j.title.trim()||!str(j.body,100000)||!date(j.date)||!str(j.course_id||"",100))throw Error("강의 기록 데이터가 올바르지 않습니다.");}
  for(const m of d.materials){if(!str(m.title,120)||!m.title.trim()||!str(m.url,2000)||!validResourceUrl(m.url)||!str(m.course_id||"",100))throw Error("자료 링크가 올바르지 않습니다.");}
+ const courseIds=new Set(d.courses.map(c=>c.id));
+ for(const kind of ["tasks","journals","materials"])for(const record of d[kind])if(record.course_id&&!courseIds.has(record.course_id))throw Error("존재하지 않는 과목을 참조하는 데이터가 있습니다.");
  return {settings:{semester:d.settings.semester||"",start:d.settings.start||"",end:d.settings.end||"",theme:d.settings.theme,dark:!!d.settings.dark},courses:d.courses,tasks:d.tasks,journals:d.journals,materials:d.materials};
 }
 
