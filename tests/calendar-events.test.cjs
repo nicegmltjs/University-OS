@@ -28,7 +28,12 @@ for(const file of ['app.js','demo.html']){
   assert.match(html,/Exam date/);
   assert.doesNotMatch(html,/DO NOT DISPLAY CLASS/);
   assert.match(html,/cal-event/);
-  assert.match(html,/data-page="tasks"/);
+  assert.match(html,/data-page="tasks" data-new-kind="event"/);
+ });
+ test(file+' calendar new-entry intent is preserved in task form',()=>{
+  assert.match(source,/let newTaskKind="task"/);
+  assert.match(source,/newTaskKind=pg\.dataset\.newKind==="event"\?"event":"task"/);
+  assert.match(source,/entry\?\.kind\|\|newTaskKind/);
  });
  test(file+' accepts independent event kind and excludes it from completion counts',()=>{
   assert.match(source,/\["task","exam","event"\]\.includes\(t\.kind\)/);
