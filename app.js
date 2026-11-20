@@ -171,7 +171,7 @@ function plans(){title("FREE / PRO","내게 맞는 이용 방식");return '<div 
 async function change(kind,entry,del=false){const previous=workspace[kind].slice();if(del)workspace[kind]=workspace[kind].filter(x=>x.id!==entry.id);else workspace[kind].push(entry);
  const saved=await persist();if(!saved)workspace[kind]=previous;render();return saved;}
 document.addEventListener("click",async e=>{
- const pg=e.target.closest("[data-page]");if(pg){editing=null;newTaskKind=pg.dataset.newKind==="event"?"event":"task";newTaskDate=null;page=pg.dataset.page;render();return;}
+ const pg=e.target.closest("[data-page]");if(pg){editing=null;newTaskKind=pg.dataset.newKind==="event"?"event":"task";newTaskDate=null;page=pg.dataset.page;if(page==="journals"){selectedJournalCourse=null;journalFormOpen=false;journalQuery="";}if(page==="materials"){selectedMaterialCourse=null;materialFormOpen=false;materialQuery="";}render();return;}
  const el=e.target.closest("[data-action]");if(!el)return;const act=el.dataset.action,id=el.dataset.id;
  if(act==="selectSubject"){if(el.dataset.kind==="journals"){selectedJournalCourse=id;journalFormOpen=false;journalQuery="";}else{selectedMaterialCourse=id;materialFormOpen=false;materialQuery="";}editing=null;render();return;}
  if(act==="backSubjects"){if(el.dataset.kind==="journals"){selectedJournalCourse=null;journalFormOpen=false;}else{selectedMaterialCourse=null;materialFormOpen=false;}editing=null;render();return;}
