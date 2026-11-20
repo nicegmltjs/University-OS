@@ -37,7 +37,7 @@ begin
  end loop;
  if pg_column_size(new.data)>2000000 then raise exception 'Workspace exceeds maximum size'; end if;
  select plan,expires_at into p,expiry from public.entitlements where user_id=new.user_id;
- if p='pro' and (expiry is null or expiry>now()) then return new; end if;
+ if p='pro' and (expiry is null or expiry>now()) then new.updated_at=now(); return new; end if;
  -- A subscription expiry must not lock users out of editing or deleting existing work.
  -- Existing over-quota records may remain, but the count cannot increase after downgrade.
  if jsonb_array_length(new.data->'journals')>20 and (
