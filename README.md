@@ -128,3 +128,13 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Added `tests/schedule-recurrence.test.cjs` for weekly recurrence, per-date completion, upcoming filtering, and next occurrence calculation in both app and demo.
 - Run the focused suites with `node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs tests/schedule-recurrence.test.cjs` (29 test cases). Source-level syntax checks for both scripts passed in the development tool environment.
 - Still requires a configured Supabase project and two test accounts for real integration testing. No live project, payment endpoint, or deployment has been created.
+
+
+## Continuous integration and browser QA
+
+- `.github/workflows/regression.yml` now runs the focused Node suites, checks production/demo JavaScript syntax, and provisions headless Chromium to smoke-test the demo at a mobile viewport.
+- `tests/persistence-regression.test.cjs` covers create/delete rollback and retaining the editor after a failed save.
+- `tests/cloud-save.test.cjs` covers queued snapshots, user ownership, recovery after failed writes, and rejection of unauthenticated writes.
+- `tests/browser-smoke.cjs` exercises demo task creation, persistence across reload, editing, calendar navigation and journal creation in Chromium.
+- Form validation now rejects impossible dates, invalid task kinds, oversized note bodies and resource URLs; calendar edit buttons wrap in narrow day cells. Backup object URLs are revoked after a short delay to improve Safari download reliability.
+- These checks are **not** a substitute for live Supabase integration, iOS Safari testing, or security review. GitHub Actions must be enabled and its actual run results checked before treating the browser suite as verified.
