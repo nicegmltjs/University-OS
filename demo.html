@@ -219,7 +219,7 @@ function calendar(){
  for(let d=1;d<=last.getDate();d++){
   const date=year+'-'+month+'-'+String(d).padStart(2,'0');
   const entries=datedTasks(date);
-  days.push('<div class="day '+(date===cur()?'today':'')+'"><button type="button" class="calendar-date-button" data-action="addCalendarDate" data-id="'+date+'" aria-label="'+date+' 일정 추가">'+d+'</button>'+entries.map(t=>'<div class="'+(t.kind==="event"?"cal-event":"cal-task")+'">'+(t.kind==="event"?"":t.occurrenceComplete?"✓ ":"• ")+safe(t.title)+'</div>').join('')+'</div>');
+  days.push('<div class="day '+(date===cur()?'today':'')+'"><button type="button" class="calendar-date-button" data-action="addCalendarDate" data-id="'+date+'" aria-label="'+date+' 일정 추가">'+d+'</button>'+entries.map(t=>'<div class="'+(t.kind==="event"?"cal-event":"cal-task")+'">'+(t.kind==="event"?"":t.occurrenceComplete?"✓ ":"• ")+action("edittask",t.id,safe(t.title))+'</div>').join('')+'</div>');
  }
  return '<section class="card"><div class="actions" style="justify-content:space-between"><h3>'+year+'년 '+(first.getMonth()+1)+'월</h3><div class="actions"><button class="btn alt" data-action="prevMonth">←</button><button class="btn alt" data-action="todayMonth">이번 달</button><button class="btn alt" data-action="nextMonth">→</button></div></div><p class="muted">과제·시험·기타 일정만 표시합니다. 정규 수업은 시간표에서 확인하세요.</p><div class="tt-scroll"><div class="calendar-grid" style="min-width:600px">'+["월","화","수","목","금","토","일"].map(x=>'<b>'+x+'</b>').join("")+days.join("")+'</div></div><div class="actions" style="margin-top:14px"><button class="btn alt" data-page="tasks" data-new-kind="event">+ 일정 등록</button></div></section>';
 }
