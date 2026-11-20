@@ -181,7 +181,8 @@ document.addEventListener("click",async e=>{
 document.addEventListener("input",e=>{if(e.target.id==="journalBody"){$("journalPreview").innerHTML=previewMarkdown(e.target.value);}});
 document.addEventListener("input",e=>{if(e.target.id==="journalSearch"||e.target.id==="materialSearch"){const id=e.target.id,pos=e.target.selectionStart;if(id==="journalSearch")journalQuery=e.target.value;else materialQuery=e.target.value;render();const input=$(id);input?.focus();try{input?.setSelectionRange(pos,pos);}catch{}}});
 document.addEventListener("submit",async e=>{const form=e.target;if(!["courseForm","taskForm","journalForm","materialForm","settingsForm"].includes(form.id))return;
- e.preventDefault();const values=Object.fromEntries(new FormData(form).entries());
+ e.preventDefault();if(form.dataset.saving==="true")return;form.dataset.saving="true";const submitButton=form.querySelector('button[type="submit"],button:not([type])');if(submitButton)submitButton.disabled=true;
+ try{const values=Object.fromEntries(new FormData(form).entries());
  if(form.id==="settingsForm"){const old=structuredClone(workspace.settings);workspace.settings={...workspace.settings,...values,dark:!!form.elements.dark.checked};if(!isPro()&&!["sage","mono"].includes(workspace.settings.theme))workspace.settings.theme="sage";if(!(await persist()))workspace.settings=old;render();return;}
  const kind=({courseForm:"courses",taskForm:"tasks",journalForm:"journals",materialForm:"materials"})[form.id];
  const current=editing?.kind===kind?workspace[kind].find(x=>x.id===editing.id):null;
@@ -190,7 +191,8 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  if(kind==="tasks"&&!["none","weekly","daily"].includes(values.repeat||"none")){alert("올바른 반복 설정을 선택해 주세요.");return;}
  if(kind==="materials"&&!validResourceUrl(values.url)){alert("http 또는 https 링크만 등록할 수 있습니다.");return;}
  if(current){const before=structuredClone(current);Object.assign(current,values);if(kind==="tasks"&&(before.date!==values.date||before.repeat!==values.repeat))current.doneDates={};if(!(await persist()))Object.assign(current,before);editing=null;render();return;}
- await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false,doneDates:{}}:{})});});
+ await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false,doneDates:{}}:{})});
+ }finally{delete form.dataset.saving;if(submitButton)submitButton.disabled=false;}});
 document.addEventListener("click",async e=>{
  if(e.target.id==="logout"){await supa.auth.signOut();user=null;workspace=defaults();plan="free";authView();}
  if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const owner=user?.id;await writeQueue.catch(()=>{});if(!owner||owner!==user?.id)return;const {error}=await supa.from("workspaces").delete().eq("user_id",owner);if(error){alert("삭제 실패: "+error.message);return;}workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
