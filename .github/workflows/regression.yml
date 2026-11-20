@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22'
       - name: Run all regression suites
-        run: node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs tests/schedule-recurrence.test.cjs tests/persistence-regression.test.cjs tests/cloud-save.test.cjs
+        run: node --test tests/*.test.cjs
       - name: Check production and demo JavaScript syntax
         run: |
           node --check --input-type=module < app.js
