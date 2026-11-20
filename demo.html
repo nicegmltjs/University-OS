@@ -18,6 +18,48 @@
 .editor-preview{min-height:80px;line-height:1.7;white-space:normal;overflow-wrap:anywhere;border:1px solid #d8e4da;border-radius:9px;padding:12px;background:#f8faf8}
 .editor-preview h4{margin:6px 0}.editor-preview mark{background:#fff0a8;color:#443d26}
 [data-dark=true] .editor-preview{background:#324238;border-color:#526457}
+
+/* Shared semantic theme tokens. All six palettes support light and dark modes. */
+body[data-theme="sage"]{--page-bg:#f5f8f5;--sidebar-bg:#ecf4ed;--surface-bg:#ffffff;--line:#dfe9e1;--text:#243a2e;--muted-ink:#687d6e;--accent:#427b58;--accent-soft:#d8e9dc;--accent-ink:#24583a;--field-line:#cbdccf;--schedule-bg:#edf4ef;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="rose"]{--page-bg:#faf5f8;--sidebar-bg:#f6e8ef;--surface-bg:#fffbfd;--line:#ead9e2;--text:#4a2c3a;--muted-ink:#866779;--accent:#a85480;--accent-soft:#f2dce8;--accent-ink:#713251;--field-line:#dfc8d4;--schedule-bg:#f8e9f0;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="peach"]{--page-bg:#fbf6f0;--sidebar-bg:#f7ebdf;--surface-bg:#fffcf8;--line:#ebdccd;--text:#4a362b;--muted-ink:#856e5d;--accent:#ae704a;--accent-soft:#f3e1cf;--accent-ink:#75472f;--field-line:#e3d0bd;--schedule-bg:#f9ede0;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="lavender"]{--page-bg:#f8f6fc;--sidebar-bg:#eeeafa;--surface-bg:#fdfbff;--line:#e2dcf0;--text:#352f4c;--muted-ink:#756d8c;--accent:#7e6cb3;--accent-soft:#e7e0f6;--accent-ink:#54437f;--field-line:#d8cfee;--schedule-bg:#f0eaf9;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="blue"]{--page-bg:#f3f8fc;--sidebar-bg:#e8f1fa;--surface-bg:#fbfdff;--line:#d7e4f0;--text:#263b4d;--muted-ink:#657e94;--accent:#4276a4;--accent-soft:#d9eaf7;--accent-ink:#28577e;--field-line:#c5daeb;--schedule-bg:#e9f3fb;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="mono"]{--page-bg:#f7f7f7;--sidebar-bg:#ececec;--surface-bg:#ffffff;--line:#dedede;--text:#282828;--muted-ink:#666666;--accent:#555555;--accent-soft:#e1e1e1;--accent-ink:#333333;--field-line:#cfcfcf;--schedule-bg:#f0f0f0;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="sage"][data-dark="true"]{--page-bg:#222c26;--sidebar-bg:#2b3930;--surface-bg:#34443a;--line:#526357;--text:#eff5f0;--muted-ink:#bdcfc0;--accent:#8cbd9b;--accent-soft:#425d4c;--accent-ink:#e3f6e7;--field-line:#607766;--schedule-bg:#2b3a31;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="rose"][data-dark="true"]{--page-bg:#30252c;--sidebar-bg:#3b2d36;--surface-bg:#473540;--line:#67505f;--text:#f7edf2;--muted-ink:#d5b9c9;--accent:#e5a0c2;--accent-soft:#68475a;--accent-ink:#fff0f7;--field-line:#826779;--schedule-bg:#3a2b35;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="peach"][data-dark="true"]{--page-bg:#302920;--sidebar-bg:#3b3228;--surface-bg:#473a2e;--line:#675546;--text:#f7f0e6;--muted-ink:#d9c4ae;--accent:#e9b48a;--accent-soft:#6b4d36;--accent-ink:#fff0df;--field-line:#846c55;--schedule-bg:#3b3027;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="lavender"][data-dark="true"]{--page-bg:#292637;--sidebar-bg:#342f43;--surface-bg:#40394f;--line:#5f566f;--text:#f3effa;--muted-ink:#c8bedb;--accent:#b6a2e6;--accent-soft:#56486f;--accent-ink:#f4eaff;--field-line:#796d90;--schedule-bg:#332d42;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="blue"][data-dark="true"]{--page-bg:#222c37;--sidebar-bg:#293746;--surface-bg:#334455;--line:#4d6276;--text:#eef5fc;--muted-ink:#b9ccdf;--accent:#94c3e8;--accent-soft:#3c5870;--accent-ink:#e9f6ff;--field-line:#627f97;--schedule-bg:#293a4a;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+body[data-theme="mono"][data-dark="true"]{--page-bg:#262626;--sidebar-bg:#303030;--surface-bg:#3a3a3a;--line:#565656;--text:#f3f3f3;--muted-ink:#c2c2c2;--accent:#b9b9b9;--accent-soft:#505050;--accent-ink:#ffffff;--field-line:#727272;--schedule-bg:#303030;--field-bg:var(--surface-bg);--notice-bg:var(--accent-soft);--tag-bg:var(--accent-soft);--preview-bg:var(--page-bg);--grid-line:var(--line)}
+html{background:transparent}
+body[data-theme]{background:var(--page-bg);color:var(--text);min-height:100vh}
+body[data-theme] .shell{background:var(--page-bg);color:var(--text)}
+body[data-theme] .sidebar{background:var(--sidebar-bg);border-color:var(--line)}
+body[data-theme] .nav{color:var(--muted-ink)}
+body[data-theme] .nav.active{background:var(--accent-soft);color:var(--accent-ink)}
+body[data-theme] .card,body[data-theme] .day{background:var(--surface-bg);color:var(--text);border-color:var(--line)}
+body[data-theme] .muted,body[data-theme] .tt-hour{color:var(--muted-ink)}
+body[data-theme] .tag{background:var(--tag-bg);color:var(--accent-ink)}
+body[data-theme] .notice{background:var(--notice-bg);color:var(--text)}
+body[data-theme] .btn:not(.alt):not(.warn){background:var(--accent);color:#fff}
+body[data-theme][data-dark="true"] .btn:not(.alt):not(.warn){color:#17201b}
+body[data-theme] .btn.alt{background:var(--accent-soft);color:var(--accent-ink)}
+body[data-theme] .field input,body[data-theme] .field select,body[data-theme] .field textarea,
+body[data-theme] #taskForm input,body[data-theme] #auth input{background:var(--field-bg);border-color:var(--field-line);color:var(--text)}
+body[data-theme] .item{border-color:var(--line)}
+body[data-theme] .day.today{border-color:var(--accent)}
+body[data-theme] .tt-day{background:var(--schedule-bg);color:var(--text)}
+body[data-theme] .tt-time-lane,body[data-theme] .tt-lane{
+ background:repeating-linear-gradient(to bottom,transparent 0px,transparent 63px,var(--grid-line) 63px,var(--grid-line) 64px);
+ background-color:var(--schedule-bg)}
+body[data-theme] .tt-event{color:var(--accent-ink)}
+body[data-theme] .editor-preview{background:var(--preview-bg);color:var(--text);border-color:var(--line)}
+body[data-theme] .editor-preview mark{background:var(--accent-soft);color:var(--accent-ink)}
+body[data-theme] .cal-class{background:var(--accent-soft);color:var(--accent-ink)}
+body[data-theme] .cal-task{background:var(--schedule-bg);color:var(--text)}
+body[data-theme] .error{color:#b24b55}
+body[data-theme][data-dark="true"] .error{color:#ffb6bf}
 </style></head><body><div id="auth"></div><div id="app" class="shell hidden"><aside class="sidebar"><div class="brand">✳ University OS</div><nav id="nav"></nav></aside><main class="main"><div class="top"><div><small id="eyebrow" class="muted"></small><h1 id="heading">My University</h1></div><div class="actions"><span id="plan" class="tag">FREE</span><button class="btn alt" id="logout">로그아웃</button></div></div><div id="content"></div><p class="muted" style="font-size:11px">University OS · 사용자별 데이터 저장 · 베타</p></main></div>
 <script>window.UNIVERSITY_OS_CONFIG={paymentEnabled:false,priceKrw:7900};</script><script>
 const cfg=window.UNIVERSITY_OS_CONFIG||{};
