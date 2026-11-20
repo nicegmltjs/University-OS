@@ -18,7 +18,7 @@ for(const file of ['app.js','demo.html']){
   ];
   const context={
    Date,monthOffset:0,workspace:{courses:[{name:'DO NOT DISPLAY CLASS',meetings:[{day:1,start:'09:00'}]}]},
-   datedTasks:d=>d===date?items:[],cur:()=>date,safe:x=>String(x),title:()=>{}
+   datedTasks:d=>d===date?items:[],cur:()=>date,safe:x=>String(x),title:()=>{},action:(name,id,label)=>`<button data-action="${name}" data-id="${id}">${label}</button>`
   };
   vm.createContext(context);
   vm.runInContext(source.slice(start,end),context);
@@ -28,6 +28,7 @@ for(const file of ['app.js','demo.html']){
   assert.match(html,/Exam date/);
   assert.doesNotMatch(html,/DO NOT DISPLAY CLASS/);
   assert.match(html,/cal-event/);
+  assert.match(html,/data-action="edittask"/);
   assert.match(html,/data-page="tasks" data-new-kind="event"/);
   assert.match(html,/data-action="addCalendarDate" data-id="\d{4}-\d{2}-\d{2}"/);
  });
