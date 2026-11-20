@@ -201,7 +201,7 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
 document.addEventListener("click",async e=>{
  if(e.target.id==="logout"){await writeQueue.catch(()=>{});const {error}=await supa.auth.signOut();if(error){alert("로그아웃 실패: "+error.message);return;}user=null;workspace=defaults();plan="free";authView();}
  if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const owner=user?.id;await writeQueue.catch(()=>{});if(!owner||owner!==user?.id)return;const {error}=await supa.from("workspaces").delete().eq("user_id",owner);if(error){alert("삭제 실패: "+error.message);return;}workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
- if(e.target.id==="export"){const blob=new Blob([JSON.stringify({version:2,data:workspace},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="university-os-backup.json";a.click();URL.revokeObjectURL(url);}
+ if(e.target.id==="export"){const blob=new Blob([JSON.stringify({version:2,data:workspace},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="university-os-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  if(e.target.id==="deleteaccount")alert("계정 및 서버 데이터 삭제 요청은 운영자에게 문의해 주세요. 셀프 삭제 기능은 정식 출시 전에 제공됩니다.");
  if(e.target.id==="checkout"){if(!cfg.paymentEnabled)return;const {data,error}=await supa.functions.invoke("create-checkout",{body:{}});if(error||!data?.checkoutUrl){alert("결제 시작 실패: "+(error?.message||"설정 확인 필요"));return;}location.href=data.checkoutUrl;}
 });
