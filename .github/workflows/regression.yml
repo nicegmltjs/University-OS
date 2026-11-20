@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: '22'
       - name: Run all regression suites
-        run: node --test tests/*.test.cjs
+        run: node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs tests/schedule-recurrence.test.cjs tests/persistence-regression.test.cjs tests/cloud-save.test.cjs
       - name: Check production and demo JavaScript syntax
         run: |
           node --check --input-type=module < app.js
@@ -30,3 +30,12 @@ jobs:
           for (const [, code] of scripts) new vm.Script(code);
           console.log('Demo JavaScript syntax OK');
           NODE
+
+      - name: Install Chromium browser test dependency
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Run mobile Chromium smoke test
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/uos-http.log 2>&1 &
+          node tests/browser-smoke.cjs
