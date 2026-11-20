@@ -47,7 +47,7 @@ test('failed cloud write does not block subsequent saves',async()=>{
 });
 test('unauthenticated save is rejected',async()=>{
  const h=harness(async()=>({error:null}));
- h.ctx.setUser(null);
+ h.ctx.user=null;
  assert.equal(await h.ctx.persist(),false);
  assert.equal(h.calls.length,0);
 });
