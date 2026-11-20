@@ -109,3 +109,12 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - The price is a product decision, **not an active checkout or subscription**. `paymentEnabled` remains `false`; no payment is processed and demo PRO toggles are not entitlements.
 - When payments are implemented after approval, the trusted server must calculate and persist the 12-month expiry, validate signed payment webhooks, and handle renewals, refunds, and cancellation. The browser must never grant PRO based on a redirect or client input.
 - Annual renewal must not be described as automatic until a recurring-billing provider and customer consent flow are explicitly approved and implemented.
+
+
+## Stability pass — 2026-11-20
+
+- Calendar day buttons prefill the date and event kind; clicking a calendar entry opens its existing editor in both production and demo.
+- Form submissions are locked while an asynchronous save is in flight, preventing double-click duplicate records. The lock is released after success or failure.
+- Backup imports reject impossible calendar dates, malformed recurrence completion maps, and credential-bearing/non-HTTP resource URLs. New material links use the same URL check.
+- Regression suites: `node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs` (18 tests across these two files). Production and demo scripts were also syntax-checked after changes.
+- **Not yet verified:** live Supabase multi-account behavior, database RLS/quotas, real browser/mobile end-to-end flows, account recovery, and destructive-operation recovery. These must pass before claiming full feature stabilization or releasing a beta.
