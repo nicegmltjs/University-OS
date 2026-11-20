@@ -89,3 +89,8 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Each theme has a distinct light/dark palette; the demo and production HTML share the same CSS.
 - Timetable event colors are blended with the selected theme while keeping course differentiation and collision warnings.
 - Theme regression checks: `node --test tests/theme.test.cjs`. No account or database migration is needed; saved theme names are unchanged.
+
+## Refined dark mode (2026-11-20)
+- Dark mode now uses distinct, solid page/sidebar/card layers rather than a washed-out appearance. The Sage Mint palette uses page `#242b29`, card `#303c37`, body text `#e8f0eb`, and accent `#83b69a`.
+- All six dark palettes were adjusted consistently, keeping light-mode palettes and stored theme identifiers unchanged.
+- Theme regression tests cover palette parity between demo and production, text/button contrast, and course tile readability. No migration or user-data changes are required.
