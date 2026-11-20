@@ -101,3 +101,11 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Standalone events do not have completion toggles and are excluded from overdue-task lists and unfinished-task counts.
 - Existing tasks and class schedules are preserved; the event type uses the existing tasks collection and is accepted by backup validation, so no schema migration is needed.
 - Regression coverage: `node --test tests/calendar-events.test.cjs`.
+
+## PRO annual pricing policy (2026-11-20)
+
+- FREE: KRW 0; unlimited courses, timetable entries, tasks/exams, and material links; up to 20 lecture journals and 2 themes.
+- PRO: **KRW 7,900 per year (12-month access)**; unlimited lecture journals and all 6 themes. This replaces the earlier per-semester price, not a per-semester renewal.
+- The price is a product decision, **not an active checkout or subscription**. `paymentEnabled` remains `false`; no payment is processed and demo PRO toggles are not entitlements.
+- When payments are implemented after approval, the trusted server must calculate and persist the 12-month expiry, validate signed payment webhooks, and handle renewals, refunds, and cancellation. The browser must never grant PRO based on a redirect or client input.
+- Annual renewal must not be described as automatic until a recurring-billing provider and customer consent flow are explicitly approved and implemented.
