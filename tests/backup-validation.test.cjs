@@ -30,3 +30,7 @@ test('invalid calendar date rejected',()=>{const d=initial();d.data.tasks[0].dat
 test('invalid recurring completion date rejected',()=>{const d=initial();d.data.tasks[0].repeat='weekly';d.data.tasks[0].doneDates={'2027-02-30':true};assert.throws(()=>validate(d,true));});
 test('invalid recurring completion type rejected',()=>{const d=initial();d.data.tasks[0].doneDates={'2027-03-02':'yes'};assert.throws(()=>validate(d,true));});
 test('resource URL credentials rejected',()=>{const d=initial();d.data.materials[0].url='https://name:password@example.com/';assert.throws(()=>validate(d,true));});
+
+test('settings array rejected',()=>{const d=initial();d.data.settings=[];assert.throws(()=>validate(d,true));});
+test('settings dark flag must be boolean',()=>{const d=initial();d.data.settings.dark='false';assert.throws(()=>validate(d,true));});
+test('deleted course references remain importable for older backups',()=>{const d=initial();d.data.courses=[];assert.ok(validate(d,true));});
