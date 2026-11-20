@@ -60,5 +60,21 @@ body[data-theme] .cal-class{background:var(--accent-soft);color:var(--accent-ink
 body[data-theme] .cal-task{background:var(--schedule-bg);color:var(--text)}
 body[data-theme] .error{color:#b24b55}
 body[data-theme][data-dark="true"] .error{color:#ffb6bf}
+
+/* Dark-mode readability: readable controls, links, status text, and course tiles. */
+body[data-theme]{--event-blend:76%;--link-ink:var(--accent-ink);--success-ink:#29734a;color-scheme:light}
+body[data-theme][data-dark="true"]{--event-blend:94%;--link-ink:var(--accent-ink);--success-ink:#b5efc8;color-scheme:dark}
+body[data-theme] a{color:var(--link-ink);text-decoration:underline;text-underline-offset:2px}
+body[data-theme] a:hover{text-decoration-thickness:2px}
+body[data-theme] .success{color:var(--success-ink)}
+body[data-theme] input::placeholder,body[data-theme] textarea::placeholder{color:var(--muted-ink);opacity:1}
+body[data-theme] input,body[data-theme] textarea,body[data-theme] select{accent-color:var(--accent)}
+body[data-theme] :is(button,input,select,textarea,a):focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+body[data-theme][data-dark="true"] :is(button,input,select,textarea,a):focus-visible{outline-color:var(--accent-ink)}
+body[data-theme] .tt-event{background-clip:padding-box}
+body[data-theme][data-dark="true"] .tt-event{color:var(--accent-ink);text-shadow:none}
+body[data-theme][data-dark="true"] .tt-event small{color:inherit;opacity:1}
+body[data-theme][data-dark="true"] .btn.warn{background:#623942;color:#ffe6ea}
+body[data-theme][data-dark="true"] .btn:disabled{opacity:.75}
 </style></head><body><div id="auth"></div><div id="app" class="shell hidden"><aside class="sidebar"><div class="brand">✳ University OS</div><nav id="nav"></nav></aside><main class="main"><div class="top"><div><small id="eyebrow" class="muted"></small><h1 id="heading">My University</h1></div><div class="actions"><span id="plan" class="tag">FREE</span><button class="btn alt" id="logout">로그아웃</button></div></div><div id="content"></div><p class="muted" style="font-size:11px">University OS · 사용자별 데이터 저장 · 베타</p></main></div>
 <script src="./config.js"></script><script type="module" src="./app.js"></script></body></html>
