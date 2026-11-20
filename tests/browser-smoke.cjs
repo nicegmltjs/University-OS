@@ -25,6 +25,7 @@ const assert=require('node:assert/strict');
   await page.locator('[data-action="nextMonth"]').first().click();
   assert.equal(await page.locator('.calendar-grid').count(),1,'Calendar navigation failed');
   await page.locator('[data-page="journals"]').first().click();
+  await page.locator('[data-action="addSubjectRecord"][data-kind="journals"]').click();
   await page.locator('#journalForm [name="title"]').fill('Smoke lecture note');
   await page.locator('#journalForm [name="body"]').fill('A note with **bold** text');
   await page.locator('#journalForm button[type="submit"],#journalForm button:not([type])').first().click();
