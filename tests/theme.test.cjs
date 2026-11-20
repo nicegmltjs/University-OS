@@ -68,13 +68,12 @@ test('refined dark palettes keep crisp text and distinct card surfaces',()=>{
  for(const theme of names){
   const selector='body[data-theme="'+theme+'"][data-dark="true"]';
   const block=sheet.slice(sheet.indexOf(selector+'{')+selector.length+1).split('}')[0];
-  const tokens=Object.fromEntries([...block.matchAll(/(--[\w-]+):(#[\\da-f]{6})/g)].map(m=>[m[1],m[2]]));
+  const tokens=Object.fromEntries([...block.matchAll(/(--[\w-]+):(#[\da-f]{6})/g)].map(m=>[m[1],m[2]]));
   assert.notEqual(tokens['--page-bg'],tokens['--surface-bg'],theme+' card must stand out');
   assert.ok(contrast(tokens['--text'],tokens['--surface-bg'])>=7,theme+' main text must remain crisp');
   assert.ok(contrast(tokens['--muted-ink'],tokens['--surface-bg'])>=4.5,theme+' secondary text must remain legible');
   assert.ok(contrast('#17201b',tokens['--accent'])>=4.5,theme+' primary button contrast');
  }
- const sage=sheet.match(/body\\[data-theme="sage"\\]\\[data-dark="true"\\]\\{([^}]*)\\}/);
  assert.ok(sheet.includes('body[data-theme="sage"][data-dark="true"]{--page-bg:#242b29;--sidebar-bg:#293430;--surface-bg:#303c37'), 'approved sage dark palette should remain consistent');
  assert.ok(sheet.includes('--text:#e8f0eb;--muted-ink:#bacdc1;--accent:#83b69a'), 'approved crisp text and accent colors');
 });
