@@ -190,6 +190,11 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  if(kind==="courses"){const {day,start,end}=values;if(!/^[0-6]$/.test(day)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end)||end<=start){alert("수업 시간을 확인해 주세요.");return;}}
  if(kind==="tasks"&&!["none","weekly","daily"].includes(values.repeat||"none")){alert("올바른 반복 설정을 선택해 주세요.");return;}
  if(kind==="materials"&&!validResourceUrl(values.url)){alert("http 또는 https 링크만 등록할 수 있습니다.");return;}
+ if(kind==="tasks"&&!["task","exam","event"].includes(values.kind)){alert("일정 종류를 확인해 주세요.");return;}
+ if(kind==="tasks"&&!validDate(values.date)){alert("올바른 날짜를 입력해 주세요.");return;}
+ if(kind==="journals"&&!validDate(values.date)){alert("올바른 날짜를 입력해 주세요.");return;}
+ if(kind==="materials"&&values.url.length>2000){alert("자료 링크는 2000자 이하여야 합니다.");return;}
+ if(kind==="journals"&&values.body.length>100000){alert("강의 기록은 100,000자 이하여야 합니다.");return;}
  if(current){const before=structuredClone(current);Object.assign(current,values);if(kind==="tasks"&&(before.date!==values.date||before.repeat!==values.repeat))current.doneDates={};const saved=await persist();if(!saved)Object.assign(current,before);else editing=null;render();return;}
  await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false,doneDates:{}}:{})});
  }finally{delete form.dataset.saving;if(submitButton)submitButton.disabled=false;}});
@@ -201,6 +206,7 @@ document.addEventListener("click",async e=>{
  if(e.target.id==="checkout"){if(!cfg.paymentEnabled)return;const {data,error}=await supa.functions.invoke("create-checkout",{body:{}});if(error||!data?.checkoutUrl){alert("결제 시작 실패: "+(error?.message||"설정 확인 필요"));return;}location.href=data.checkoutUrl;}
 });
 
+function validDate(value){if(typeof value!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const parsed=new Date(value+"T12:00:00Z");return !Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===value;}
 function validResourceUrl(value){try{const url=new URL(value);return ["http:","https:"].includes(url.protocol)&&!!url.hostname&&!url.username&&!url.password;}catch{return false;}}
 function validateBackupFile(raw,pro=false){
  if(!raw||typeof raw!=="object"||Array.isArray(raw)||raw.version!==2)throw Error("지원하지 않는 백업 형식입니다.");
