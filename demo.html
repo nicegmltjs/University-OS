@@ -306,8 +306,6 @@ function validateBackupFile(raw,pro=false){
  for(const t of d.tasks){if(!str(t.title,120)||!t.title.trim()||!date(t.date)||!["task","exam","event"].includes(t.kind)||!["none","weekly","daily",undefined].includes(t.repeat)||typeof t.done!=="boolean"||!str(t.course_id||"",100)||t.doneDates&&(!t.doneDates||typeof t.doneDates!=="object"||Array.isArray(t.doneDates)||Object.entries(t.doneDates).some(([day,done])=>!date(day)||typeof done!=="boolean")))throw Error("과제·시험 데이터가 올바르지 않습니다.");}
  for(const j of d.journals){if(!str(j.title,100)||!j.title.trim()||!str(j.body,100000)||!date(j.date)||!str(j.course_id||"",100))throw Error("강의 기록 데이터가 올바르지 않습니다.");}
  for(const m of d.materials){if(!str(m.title,120)||!m.title.trim()||!str(m.url,2000)||!validResourceUrl(m.url)||!str(m.course_id||"",100))throw Error("자료 링크가 올바르지 않습니다.");}
- const courseIds=new Set(d.courses.map(c=>c.id));
- for(const kind of ["tasks","journals","materials"])for(const record of d[kind])if(record.course_id&&!courseIds.has(record.course_id))throw Error("존재하지 않는 과목을 참조하는 데이터가 있습니다.");
  return {settings:{semester:d.settings.semester||"",start:d.settings.start||"",end:d.settings.end||"",theme:d.settings.theme,dark:!!d.settings.dark},courses:d.courses,tasks:d.tasks,journals:d.journals,materials:d.materials};
 }
 
