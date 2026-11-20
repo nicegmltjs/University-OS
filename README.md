@@ -118,3 +118,13 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Backup imports reject impossible calendar dates, malformed recurrence completion maps, and credential-bearing/non-HTTP resource URLs. New material links use the same URL check.
 - Regression suites: `node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs` (18 tests across these two files). Production and demo scripts were also syntax-checked after changes.
 - **Not yet verified:** live Supabase multi-account behavior, database RLS/quotas, real browser/mobile end-to-end flows, account recovery, and destructive-operation recovery. These must pass before claiming full feature stabilization or releasing a beta.
+
+
+## Cloud-readiness and regression pass — 2026-11-20
+
+- Account entry and logout wait for queued workspace writes to settle before changing the active session. This avoids overwriting an unsaved edit when switching accounts in the same tab.
+- Demo localStorage quota/privacy errors now return a failed save result rather than throwing out of the UI flow.
+- Backup validator rejects array-shaped settings and non-boolean dark-mode values, while retaining compatibility with older records referencing previously deleted courses.
+- Added `tests/schedule-recurrence.test.cjs` for weekly recurrence, per-date completion, upcoming filtering, and next occurrence calculation in both app and demo.
+- Run the focused suites with `node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs tests/schedule-recurrence.test.cjs` (29 test cases). Source-level syntax checks for both scripts passed in the development tool environment.
+- Still requires a configured Supabase project and two test accounts for real integration testing. No live project, payment endpoint, or deployment has been created.
