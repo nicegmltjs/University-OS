@@ -76,3 +76,10 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Lecture Journal can be filtered by title, text, course, or date, and Materials by name, URL, or course.
 - Repeat-task regression tests: `node --test tests/recurring-tasks.test.cjs` (run from repo root). Backups accept legacy tasks without a `repeat` field.
 - Remaining QA: real browser end-to-end interaction, search field accessibility, multi-account Supabase tests, payment integration and original public Git history cleanup.
+
+## Data integrity improvements (2026-11-20)
+- Course meeting edit/delete now restores the previous schedule if persistence fails; both the production app and demo have matching behavior.
+- Repeating tasks in the task list target the next occurrence rather than blindly marking the current date. The dashboard labels overdue items using the occurrence date.
+- Production workspace reset waits for pending queued writes before deleting the authenticated user's data, reducing the chance that an older queued write recreates deleted data.
+- PRO workspaces now refresh updated_at in the database trigger, consistent with FREE workspaces.
+- Run `node --test tests/*.test.cjs` to cover the new recurrence and data-safety regressions. Browser/Supabase end-to-end verification is still required.
