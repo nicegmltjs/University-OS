@@ -8,7 +8,7 @@ const source=fs.readFileSync('app.js','utf8');
 const first=source.indexOf('function validResourceUrl(');
 const last=source.indexOf('document.addEventListener("change"',first);
 assert.ok(first>=0&&last>first,'Validator must be defined');
-const validate=vm.runInNewContext(source.slice(first,last)+'\nvalidateBackupFile');
+const validate=vm.runInNewContext(source.slice(first,last)+'\nvalidateBackupFile',{URL});
 const initial=()=>({
  version:2,data:{
   settings:{semester:'2027 봄',start:'2027-03-01',end:'2027-06-20',theme:'sage',dark:false},
