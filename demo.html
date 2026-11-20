@@ -85,6 +85,16 @@ body[data-theme] .calendar-date-button:hover,body[data-theme] .calendar-date-but
 .calendar-grid .day{min-width:0;overflow-wrap:anywhere}
 .calendar-grid .cal-event,.calendar-grid .cal-task{min-width:0}
 @media(max-width:600px){.calendar-grid .calendar-date-button{min-width:36px;min-height:36px}}
+
+.subject-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 16px;min-height:38px}
+.subject-toolbar .subject-add{margin-left:auto;padding:7px 12px;font-size:12px}
+.subject-toolbar .subject-back{padding:7px 12px;font-size:12px}
+.subject-toolbar [hidden]{display:none}
+.subject-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:12px;margin:12px 0 24px}
+.subject-card{display:flex;flex-direction:column;align-items:flex-start;gap:9px;text-align:left;min-height:104px;padding:19px;border-radius:14px;border:1px solid var(--line,#dfe9e1);background:var(--surface-bg,#fff);color:var(--text,#243a2e);cursor:pointer;transition:border-color .15s,transform .15s}
+.subject-card:hover,.subject-card:focus-visible{border-color:var(--accent,#427b58);transform:translateY(-1px);outline-offset:2px}
+.subject-card-name{font-size:15px;font-weight:700;overflow-wrap:anywhere}
+@media(max-width:480px){.subject-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.subject-card{padding:14px;min-height:96px}.subject-card-name{font-size:14px}}
 </style></head><body><div id="auth"></div><div id="app" class="shell hidden"><aside class="sidebar"><div class="brand">✳ University OS</div><nav id="nav"></nav></aside><main class="main"><div class="top"><div><small id="eyebrow" class="muted"></small><h1 id="heading">My University</h1></div><div class="actions"><span id="plan" class="tag">FREE</span><button class="btn alt" id="logout">로그아웃</button></div></div><div id="content"></div><p class="muted" style="font-size:11px">University OS · 사용자별 데이터 저장 · 베타</p></main></div>
 <script>window.UNIVERSITY_OS_CONFIG={paymentEnabled:false,priceKrw:7900};</script><script>
 const cfg=window.UNIVERSITY_OS_CONFIG||{};
