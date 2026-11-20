@@ -34,7 +34,7 @@ for(const file of ['app.js','demo.html']){
   assert.deepEqual(context.workspace.tasks.map(t=>t.id),['old']);
  });
  test(file+' edit form retains edit state on save failure',()=>{
-  assert.match(source,/const saved=await persist\(\);if\(!saved\)Object\.assign\(current,before\);else editing=null/);
+  assert.match(source,/const saved=await persist\(\);if\(!saved\)Object\.assign\(current,before\);else \{editing=null;/);
  });
 }
 test('production cloud writes are queued and account scoped',()=>{
