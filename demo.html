@@ -177,7 +177,7 @@ document.addEventListener("click",async e=>{
  if(act==="toggle"){const date=id.split("@")[1]||cur();const before=structuredClone(item);if(item.repeat&&item.repeat!=="none"){item.doneDates={...(item.doneDates||{}),[date]:!occurrenceDone(item,date)};}else item.done=!item.done;if(!(await persist()))Object.assign(item,before);render();return;}
  if(act==="meeting"||act==="editmeeting"||act==="delmeeting"){
  const parts=id.split(":"),target=workspace.courses.find(x=>x.id===parts[0]),index=Number(parts[1]);if(!target)return;
- if(act==="delmeeting"){if(!confirm("이 수업 시간만 삭제할까요?"))return;target.meetings.splice(index,1);await persist();render();return;}
+ if(act==="delmeeting"){if(!confirm("이 수업 시간만 삭제할까요?"))return;const before=structuredClone(target.meetings);target.meetings.splice(index,1);if(!(await persist()))target.meetings=before;render();return;}
  const prev=act==="editmeeting"?target.meetings[index]:{day:1,start:"09:00",end:"10:15"};
  if(!prev)return;
  const day=prompt("요일 (0=일, 1=월, ..., 6=토)",String(prev.day));
@@ -187,7 +187,7 @@ document.addEventListener("click",async e=>{
  if(!/^[0-6]$/.test(day)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end)||end<=start){alert("요일 또는 시작·종료 시간을 확인하세요.");return;}
  if(act==="editmeeting")target.meetings[index]={day:Number(day),start,end};
  else target.meetings=[...(target.meetings||[]),{day:Number(day),start,end}];
- await persist();render();return;
+ if(!(await persist())){if(act==="editmeeting")target.meetings[index]=prev;else target.meetings.pop();}render();return;
  }
  if(act.startsWith("del")){if(!confirm("정말 삭제할까요?"))return;editing=null;await change(kind,item,true);return;}
  if(act==="editcourse"){const name=prompt("과목 이름",item.name);if(name===null)return;if(!name.trim()){alert("과목 이름을 입력해 주세요.");return;}const room=prompt("강의실 (선택)",item.room||"");if(room===null)return;const old={name:item.name,room:item.room};item.name=name.trim();item.room=room.trim();if(!(await persist()))Object.assign(item,old);render();}
