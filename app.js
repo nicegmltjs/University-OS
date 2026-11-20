@@ -25,7 +25,7 @@ async function authenticate(create){const email=$("email").value.trim(),password
  await enter();
 }
 function showRecovery(){ $("app").classList.add("hidden");$("auth").classList.remove("hidden");$("auth").innerHTML='<div class="card"><h1>비밀번호 변경</h1><form id="recoveryForm"><label class="field">새 비밀번호<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" required></label><button class="btn">비밀번호 변경</button></form><p id="message" aria-live="polite"></p></div>';$("recoveryForm").onsubmit=async e=>{e.preventDefault();const pwd=$("recoveryPassword").value;const {error}=await supa.auth.updateUser({password:pwd});if(error){message(error.message);return;}message("비밀번호가 변경되었습니다. 로그인 후 이용해 주세요.","success");await supa.auth.signOut();setTimeout(authView,250);};}
-async function enter(){const {data:{user:u}}=await supa.auth.getUser();user=u;if(!user){authView();return;}
+async function enter(){await writeQueue.catch(()=>{});const {data:{user:u}}=await supa.auth.getUser();user=u;if(!user){authView();return;}
  const {data:space,error}=await supa.from("workspaces").select("data").eq("user_id",user.id).maybeSingle();
  if(error){authView();message("데이터 조회 실패: "+error.message);return;}
  workspace=space?.data&&Array.isArray(space.data.courses)?space.data:defaults();
@@ -194,7 +194,7 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false,doneDates:{}}:{})});
  }finally{delete form.dataset.saving;if(submitButton)submitButton.disabled=false;}});
 document.addEventListener("click",async e=>{
- if(e.target.id==="logout"){await supa.auth.signOut();user=null;workspace=defaults();plan="free";authView();}
+ if(e.target.id==="logout"){await writeQueue.catch(()=>{});const {error}=await supa.auth.signOut();if(error){alert("로그아웃 실패: "+error.message);return;}user=null;workspace=defaults();plan="free";authView();}
  if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const owner=user?.id;await writeQueue.catch(()=>{});if(!owner||owner!==user?.id)return;const {error}=await supa.from("workspaces").delete().eq("user_id",owner);if(error){alert("삭제 실패: "+error.message);return;}workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
  if(e.target.id==="export"){const blob=new Blob([JSON.stringify({version:2,data:workspace},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="university-os-backup.json";a.click();URL.revokeObjectURL(url);}
  if(e.target.id==="deleteaccount")alert("계정 및 서버 데이터 삭제 요청은 운영자에게 문의해 주세요. 셀프 삭제 기능은 정식 출시 전에 제공됩니다.");
