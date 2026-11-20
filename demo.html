@@ -228,7 +228,7 @@ document.addEventListener("click",async e=>{
  const pg=e.target.closest("[data-page]");if(pg){editing=null;newTaskKind=pg.dataset.newKind==="event"?"event":"task";newTaskDate=null;page=pg.dataset.page;render();return;}
  const el=e.target.closest("[data-action]");if(!el)return;const act=el.dataset.action,id=el.dataset.id;
  if(act==="cancelEdit"){editing=null;render();return;}
- if(act==="addCalendarDate"){if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(id))return;editing=null;newTaskKind="event";newTaskDate=id;page="tasks";render();window.scrollTo(0,0);return;}
+ if(act==="addCalendarDate"){if(!/^\d{4}-\d{2}-\d{2}$/.test(id))return;editing=null;newTaskKind="event";newTaskDate=id;page="tasks";render();window.scrollTo(0,0);return;}
  if(act==="journalFormat"){const ta=$("journalBody");if(!ta)return;const a=ta.selectionStart,b=ta.selectionEnd,selection=ta.value.slice(a,b)||"내용";const fmt=el.dataset.format;let chunk=selection;if(fmt==="bold")chunk="**"+selection+"**";else if(fmt==="italic")chunk="*"+selection+"*";else if(fmt==="heading")chunk="### "+selection;else if(fmt==="bullet")chunk="- "+selection;else if(fmt==="highlight")chunk="=="+selection+"==";ta.setRangeText(chunk,a,b,"select");$("journalPreview").innerHTML=previewMarkdown(ta.value);ta.focus();return;}
  if(act==="prevMonth"||act==="nextMonth"||act==="todayMonth"){monthOffset=act==="todayMonth"?0:monthOffset+(act==="prevMonth"?-1:1);render();return;}
  if(["edittask","editjournal","editmaterial"].includes(act)){editing={kind:act==="edittask"?"tasks":act==="editjournal"?"journals":"materials",id};page=editing.kind;render();window.scrollTo(0,0);return;}
