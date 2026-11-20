@@ -1,1 +1,140 @@
-# University-OS
+# University OS — Freemium Beta (development branch)
+
+This branch replaces the original personal prototype with a generic app. It has no embedded timetable, fixed exam milestones, private course names or personal task data.
+
+## Implemented
+- Email/password signup and login via Supabase Auth (email confirmation according to Supabase settings)
+- Row-level-security protected per-user JSON workspace
+- Editable semester, courses, timetable meetings, tasks/exams, lecture journals, and resource links
+- FREE: unlimited courses, tasks and resource links; 20 lecture journals and 2 themes
+- PRO entitlement read from a protected table, higher quotas and 6 themes
+- JSON export/import
+- Mobile responsive layout
+
+## Setup required before running
+1. Create your own Supabase project. Enable email provider in Auth, configure confirmed redirect URLs and application domain.
+2. Run \`supabase/schema.sql\` in SQL Editor. Review the RLS policies and grants.
+3. Enter the **public project URL** and **public anon/publishable key** in \`config.js\`.
+   Never add your \`service_role\` key to a public repository.
+4. Serve with an HTTP server and test with two separate email accounts.
+5. Deploy only after checking sign-up, sign-in/out, account isolation, limits, backups and mobile UX.
+
+## Payments — intentionally NOT live
+\`paymentEnabled\` is false. The PRO button is disabled until a **real server-side checkout endpoint and signed webhook** are implemented and configured with the seller's legal/payment provider account. Client-side changes must never unlock a PRO account. Never accept a plan from the browser as authoritative.
+
+Recommended backend flow:
+1. User clicks PRO → authenticated server endpoint creates a checkout session with the provider.
+2. Provider returns to your site; this return alone does not grant PRO.
+3. Verified, idempotent server webhook confirms paid transaction.
+4. Server updates \`entitlements\` using secure server credentials; browser refreshes plan.
+5. Refunds/cancellations/expiration revoke or adjust entitlements.
+
+## Security / privacy notes
+- RLS blocks users reading each other's workspaces.
+- FREE quotas are checked **again on the database** by a trigger.
+- The source repository is public; don't assume UI-hidden features are protected intellectual property.
+- For a production service, add deletion workflow, privacy policy, terms, password recovery UX, transaction records, monitoring, strong import validation, schema migration, payment/refund flows, and security/QA tests.
+- Old personal data **still exists in the main branch and Git history**. Do not publish/share the original repository as a sanitized app. Remove/rewrite sensitive history separately after making backups and considering GitHub forks/caches. This branch does not alter original history.
+
+## Project files
+- \`index.html\`: responsive layout
+- \`app.js\`: application and authentication integration
+- \`config.js\`: public runtime config placeholder (no secrets)
+- \`supabase/schema.sql\`: database, RLS and quotas
+
+This is a beta implementation, not an operational paid service.
+
+## Current demo preview (no accounts required)
+- Download `demo.html` from this branch and open it locally in a modern browser. It runs entirely in the browser with a separate `uos-demo-v1` localStorage key. No signup, Supabase, or payment configuration is required for the demo.
+- The demo can switch FREE/PRO for display testing; this is **not** a real subscription.
+- Create subjects with weekday, start/end time and room; the weekly timetable updates automatically. Add multiple meetings to one subject, edit/remove meetings and see overlapping class warnings.
+- Use complete edit forms for tasks, lecture notes and material links; calendars include class schedules and dated tasks; home includes overdue tasks and today's meetings.
+- Editing records at the FREE journal limit must stay possible, while creating a 21st note is blocked.
+- Local browser storage is **not** synced to the production app. Export JSON before clearing browser site data.
+
+## QA checklist before release
+- [ ] Sign up / login / logout with two different accounts and validate user-specific data isolation
+- [ ] Add, edit, delete and persist course meetings; validate overlapping and overnight input behavior
+- [ ] Test same course meeting multiple weekdays, mobile timetable horizontal scrolling, calendar month navigation
+- [ ] Edit all task/note/material fields, including when FREE limit has been reached
+- [ ] Test JSON import/export with valid, malformed and oversized files; add strict import schema validation
+- [ ] Verify keyboard navigation, screen reader labels and responsive layout in browsers
+- [ ] Validate database-side FREE cap and protected PRO plan changes
+- [ ] Implement and test checkout only after trusted webhook and merchant account setup
+- [ ] Remove original personalized content from public main and commit history safely
+
+### Automated checks performed
+The app and demo JavaScript were parsed successfully with a JavaScript syntax check. End-to-end browser interaction, accessibility and live Supabase/payment QA have **not** been completed.
+
+## Backup import regression checks
+
+Run `node --test tests/backup-validation.test.cjs` from the repository root. The tests extract the production validator from `app.js` and cover valid FREE imports, PRO themes, incorrect meeting times, unsafe URLs, duplicate IDs and the 20-journal limit. The import UI also rejects files larger than 2 MB before parsing. These checks do not substitute for live account isolation or browser E2E testing.
+
+## Repeating assignments and searchable records
+
+- Tasks now support one-time, weekly, and daily schedules. Repeating tasks use a per-date completion map, so checking one week does not complete subsequent weeks. The home dashboard shows overdue one-off work and upcoming repeated instances; the calendar renders occurrences for each date.
+- Lecture Journal can be filtered by title, text, course, or date, and Materials by name, URL, or course.
+- Repeat-task regression tests: `node --test tests/recurring-tasks.test.cjs` (run from repo root). Backups accept legacy tasks without a `repeat` field.
+- Remaining QA: real browser end-to-end interaction, search field accessibility, multi-account Supabase tests, payment integration and original public Git history cleanup.
+
+## Data integrity improvements (2026-11-20)
+- Course meeting edit/delete now restores the previous schedule if persistence fails; both the production app and demo have matching behavior.
+- Repeating tasks in the task list target the next occurrence rather than blindly marking the current date. The dashboard labels overdue items using the occurrence date.
+- Production workspace reset waits for pending queued writes before deleting the authenticated user's data, reducing the chance that an older queued write recreates deleted data.
+- PRO workspaces now refresh updated_at in the database trigger, consistent with FREE workspaces.
+- Run `node --test tests/*.test.cjs` to cover the new recurrence and data-safety regressions. Browser/Supabase end-to-end verification is still required.
+
+## Theme styling fix (2026-11-20)
+- All six themes now define complete semantic colors for page, sidebar, cards, navigation, inputs, timetable, calendar, and editor instead of only changing the primary button.
+- Each theme has a distinct light/dark palette; the demo and production HTML share the same CSS.
+- Timetable event colors are blended with the selected theme while keeping course differentiation and collision warnings.
+- Theme regression checks: `node --test tests/theme.test.cjs`. No account or database migration is needed; saved theme names are unchanged.
+
+## Refined dark mode (2026-11-20)
+- Dark mode now uses distinct, solid page/sidebar/card layers rather than a washed-out appearance. The Sage Mint palette uses page `#242b29`, card `#303c37`, body text `#e8f0eb`, and accent `#83b69a`.
+- All six dark palettes were adjusted consistently, keeping light-mode palettes and stored theme identifiers unchanged.
+- Theme regression tests cover palette parity between demo and production, text/button contrast, and course tile readability. No migration or user-data changes are required.
+
+## Calendar: non-class schedules only (2026-11-20)
+- The monthly calendar no longer duplicates recurring class meetings. Classes remain visible in the weekly timetable and today's class dashboard.
+- The calendar displays assignments, exams, and a new **기타 일정** (standalone event) type, with daily/weekly recurrence support and optional course association.
+- Standalone events do not have completion toggles and are excluded from overdue-task lists and unfinished-task counts.
+- Existing tasks and class schedules are preserved; the event type uses the existing tasks collection and is accepted by backup validation, so no schema migration is needed.
+- Regression coverage: `node --test tests/calendar-events.test.cjs`.
+
+## PRO annual pricing policy (2026-11-20)
+
+- FREE: KRW 0; unlimited courses, timetable entries, tasks/exams, and material links; up to 20 lecture journals and 2 themes.
+- PRO: **KRW 7,900 per year (12-month access)**; unlimited lecture journals and all 6 themes. This replaces the earlier per-semester price, not a per-semester renewal.
+- The price is a product decision, **not an active checkout or subscription**. `paymentEnabled` remains `false`; no payment is processed and demo PRO toggles are not entitlements.
+- When payments are implemented after approval, the trusted server must calculate and persist the 12-month expiry, validate signed payment webhooks, and handle renewals, refunds, and cancellation. The browser must never grant PRO based on a redirect or client input.
+- Annual renewal must not be described as automatic until a recurring-billing provider and customer consent flow are explicitly approved and implemented.
+
+
+## Stability pass — 2026-11-20
+
+- Calendar day buttons prefill the date and event kind; clicking a calendar entry opens its existing editor in both production and demo.
+- Form submissions are locked while an asynchronous save is in flight, preventing double-click duplicate records. The lock is released after success or failure.
+- Backup imports reject impossible calendar dates, malformed recurrence completion maps, and credential-bearing/non-HTTP resource URLs. New material links use the same URL check.
+- Regression suites: `node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs` (18 tests across these two files). Production and demo scripts were also syntax-checked after changes.
+- **Not yet verified:** live Supabase multi-account behavior, database RLS/quotas, real browser/mobile end-to-end flows, account recovery, and destructive-operation recovery. These must pass before claiming full feature stabilization or releasing a beta.
+
+
+## Cloud-readiness and regression pass — 2026-11-20
+
+- Account entry and logout wait for queued workspace writes to settle before changing the active session. This avoids overwriting an unsaved edit when switching accounts in the same tab.
+- Demo localStorage quota/privacy errors now return a failed save result rather than throwing out of the UI flow.
+- Backup validator rejects array-shaped settings and non-boolean dark-mode values, while retaining compatibility with older records referencing previously deleted courses.
+- Added `tests/schedule-recurrence.test.cjs` for weekly recurrence, per-date completion, upcoming filtering, and next occurrence calculation in both app and demo.
+- Run the focused suites with `node --test tests/backup-validation.test.cjs tests/calendar-events.test.cjs tests/schedule-recurrence.test.cjs` (29 test cases). Source-level syntax checks for both scripts passed in the development tool environment.
+- Still requires a configured Supabase project and two test accounts for real integration testing. No live project, payment endpoint, or deployment has been created.
+
+
+## Continuous integration and browser QA
+
+- `.github/workflows/regression.yml` now runs the focused Node suites, checks production/demo JavaScript syntax, and provisions headless Chromium to smoke-test the demo at a mobile viewport.
+- `tests/persistence-regression.test.cjs` covers create/delete rollback and retaining the editor after a failed save.
+- `tests/cloud-save.test.cjs` covers queued snapshots, user ownership, recovery after failed writes, and rejection of unauthenticated writes.
+- `tests/browser-smoke.cjs` exercises demo task creation, persistence across reload, editing, calendar navigation and journal creation in Chromium.
+- Form validation now rejects impossible dates, invalid task kinds, oversized note bodies and resource URLs; calendar edit buttons wrap in narrow day cells. Backup object URLs are revoked after a short delay to improve Safari download reliability.
+- These checks are **not** a substitute for live Supabase integration, iOS Safari testing, or security review. GitHub Actions must be enabled and its actual run results checked before treating the browser suite as verified.
