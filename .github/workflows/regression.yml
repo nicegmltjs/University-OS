@@ -1,0 +1,32 @@
+name: University OS regression tests
+on:
+  push:
+    branches: [feature/multiuser-freemium]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run all regression suites
+        run: node --test tests/*.test.cjs
+      - name: Check production and demo JavaScript syntax
+        run: |
+          node --check --input-type=module < app.js
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const vm = require('node:vm');
+          const html = fs.readFileSync('demo.html', 'utf8');
+          const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)];
+          if (!scripts.length) throw new Error('No inline demo script found');
+          for (const [, code] of scripts) new vm.Script(code);
+          console.log('Demo JavaScript syntax OK');
+          NODE
