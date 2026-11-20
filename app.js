@@ -162,7 +162,7 @@ document.addEventListener("click",async e=>{
  if(act==="toggle"){const date=id.split("@")[1]||cur();const before=structuredClone(item);if(item.repeat&&item.repeat!=="none"){item.doneDates={...(item.doneDates||{}),[date]:!occurrenceDone(item,date)};}else item.done=!item.done;if(!(await persist()))Object.assign(item,before);render();return;}
  if(act==="meeting"||act==="editmeeting"||act==="delmeeting"){
  const parts=id.split(":"),target=workspace.courses.find(x=>x.id===parts[0]),index=Number(parts[1]);if(!target)return;
- if(act==="delmeeting"){if(!confirm("이 수업 시간만 삭제할까요?"))return;target.meetings.splice(index,1);await persist();render();return;}
+ if(act==="delmeeting"){if(!confirm("이 수업 시간만 삭제할까요?"))return;const before=structuredClone(target.meetings);target.meetings.splice(index,1);if(!(await persist()))target.meetings=before;render();return;}
  const prev=act==="editmeeting"?target.meetings[index]:{day:1,start:"09:00",end:"10:15"};
  if(!prev)return;
  const day=prompt("요일 (0=일, 1=월, ..., 6=토)",String(prev.day));
@@ -172,7 +172,7 @@ document.addEventListener("click",async e=>{
  if(!/^[0-6]$/.test(day)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(start)||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(end)||end<=start){alert("요일 또는 시작·종료 시간을 확인하세요.");return;}
  if(act==="editmeeting")target.meetings[index]={day:Number(day),start,end};
  else target.meetings=[...(target.meetings||[]),{day:Number(day),start,end}];
- await persist();render();return;
+ if(!(await persist())){if(act==="editmeeting")target.meetings[index]=prev;else target.meetings.pop();}render();return;
  }
  if(act.startsWith("del")){if(!confirm("정말 삭제할까요?"))return;editing=null;await change(kind,item,true);return;}
  if(act==="editcourse"){const name=prompt("과목 이름",item.name);if(name===null)return;if(!name.trim()){alert("과목 이름을 입력해 주세요.");return;}const room=prompt("강의실 (선택)",item.room||"");if(room===null)return;const old={name:item.name,room:item.room};item.name=name.trim();item.room=room.trim();if(!(await persist()))Object.assign(item,old);render();}
@@ -192,7 +192,7 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  await change(kind,{id:uid(),...values,...(kind==="courses"?{meetings:[{day:Number(values.day),start:values.start,end:values.end}]}:{}),...(kind==="tasks"?{done:false,doneDates:{}}:{})});});
 document.addEventListener("click",async e=>{
  if(e.target.id==="logout"){await supa.auth.signOut();user=null;workspace=defaults();plan="free";authView();}
- if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const {error}=await supa.from("workspaces").delete().eq("user_id",user.id);if(error){alert("삭제 실패: "+error.message);return;}workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
+ if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const owner=user?.id;await writeQueue.catch(()=>{});if(!owner||owner!==user?.id)return;const {error}=await supa.from("workspaces").delete().eq("user_id",owner);if(error){alert("삭제 실패: "+error.message);return;}workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
  if(e.target.id==="export"){const blob=new Blob([JSON.stringify({version:2,data:workspace},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="university-os-backup.json";a.click();URL.revokeObjectURL(url);}
  if(e.target.id==="deleteaccount")alert("계정 및 서버 데이터 삭제 요청은 운영자에게 문의해 주세요. 셀프 삭제 기능은 정식 출시 전에 제공됩니다.");
  if(e.target.id==="checkout"){if(!cfg.paymentEnabled)return;const {data,error}=await supa.functions.invoke("create-checkout",{body:{}});if(error||!data?.checkoutUrl){alert("결제 시작 실패: "+(error?.message||"설정 확인 필요"));return;}location.href=data.checkoutUrl;}
