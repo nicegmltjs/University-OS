@@ -94,3 +94,10 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Dark mode now uses distinct, solid page/sidebar/card layers rather than a washed-out appearance. The Sage Mint palette uses page `#242b29`, card `#303c37`, body text `#e8f0eb`, and accent `#83b69a`.
 - All six dark palettes were adjusted consistently, keeping light-mode palettes and stored theme identifiers unchanged.
 - Theme regression tests cover palette parity between demo and production, text/button contrast, and course tile readability. No migration or user-data changes are required.
+
+## Calendar: non-class schedules only (2026-11-20)
+- The monthly calendar no longer duplicates recurring class meetings. Classes remain visible in the weekly timetable and today's class dashboard.
+- The calendar displays assignments, exams, and a new **기타 일정** (standalone event) type, with daily/weekly recurrence support and optional course association.
+- Standalone events do not have completion toggles and are excluded from overdue-task lists and unfinished-task counts.
+- Existing tasks and class schedules are preserved; the event type uses the existing tasks collection and is accepted by backup validation, so no schema migration is needed.
+- Regression coverage: `node --test tests/calendar-events.test.cjs`.
