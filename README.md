@@ -83,3 +83,9 @@ Run `node --test tests/backup-validation.test.cjs` from the repository root. The
 - Production workspace reset waits for pending queued writes before deleting the authenticated user's data, reducing the chance that an older queued write recreates deleted data.
 - PRO workspaces now refresh updated_at in the database trigger, consistent with FREE workspaces.
 - Run `node --test tests/*.test.cjs` to cover the new recurrence and data-safety regressions. Browser/Supabase end-to-end verification is still required.
+
+## Theme styling fix (2026-11-20)
+- All six themes now define complete semantic colors for page, sidebar, cards, navigation, inputs, timetable, calendar, and editor instead of only changing the primary button.
+- Each theme has a distinct light/dark palette; the demo and production HTML share the same CSS.
+- Timetable event colors are blended with the selected theme while keeping course differentiation and collision warnings.
+- Theme regression checks: `node --test tests/theme.test.cjs`. No account or database migration is needed; saved theme names are unchanged.
