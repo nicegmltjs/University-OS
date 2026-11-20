@@ -50,7 +50,7 @@ test('dark mode maintains WCAG AA contrast for text, links, inputs, and all cour
  for(const theme of names){
   const selector='body[data-theme="'+theme+'"][data-dark="true"]';
   const block=sheet.slice(sheet.indexOf(selector+'{')+selector.length+1).split('}')[0];
-  const values=Object.fromEntries([...block.matchAll(/(--[\\w-]+):(#[\\da-f]{6})/g)].map(m=>[m[1],m[2]]));
+  const values=Object.fromEntries([...block.matchAll(/(--[\w-]+):(#[\da-f]{6})/g)].map(m=>[m[1],m[2]]));
   for(const [fg,bg] of [
    ['--text','--page-bg'],['--text','--surface-bg'],['--muted-ink','--surface-bg'],
    ['--muted-ink','--sidebar-bg'],['--accent-ink','--accent-soft'],['--accent-ink','--surface-bg']
