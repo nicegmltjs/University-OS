@@ -115,7 +115,7 @@ async function enter(){const {data:{user:u}}=await supa.auth.getUser();user=u;if
  plan=ent?.plan==="pro"&&(!ent.expires_at||new Date(ent.expires_at)>new Date())?"pro":"free";
  $("auth").classList.add("hidden");$("app").classList.remove("hidden");render();
 }
-async function persist(){localStorage.setItem("uos-demo-v1",JSON.stringify(workspace));return true;}
+async function persist(){try{localStorage.setItem("uos-demo-v1",JSON.stringify(workspace));return true;}catch(err){alert("데모 데이터 저장 실패: "+err.message+"\nJSON 백업을 먼저 저장하고 브라우저 저장 공간을 확인해 주세요.");return false;}}
 const limits=(k)=>isPro()||!(k in caps)?"무제한":caps[k];
 const atLimit=k=>!isPro()&&(k in caps)&&workspace[k].length>=caps[k];
 function gate(k){if(atLimit(k)){alert("FREE "+({courses:"과목",tasks:"과제",journals:"강의 기록",materials:"자료"}[k])+"은 최대 "+caps[k]+"개입니다. PRO에서 제한을 해제할 수 있습니다.");page="plans";render();return false;}return true;}
