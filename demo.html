@@ -77,6 +77,9 @@ body[data-theme][data-dark="true"] .tt-event{color:var(--accent-ink);text-shadow
 body[data-theme][data-dark="true"] .tt-event small{color:inherit;opacity:1}
 body[data-theme][data-dark="true"] .btn.warn{background:#623942;color:#ffe6ea}
 body[data-theme][data-dark="true"] .btn:disabled{opacity:.75}
+
+body[data-theme] .calendar-date-button{display:inline-flex;align-items:center;justify-content:center;min-width:30px;min-height:30px;padding:3px 7px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--text);font:inherit;font-weight:700;cursor:pointer}
+body[data-theme] .calendar-date-button:hover,body[data-theme] .calendar-date-button:focus-visible{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--field-line)}
 </style></head><body><div id="auth"></div><div id="app" class="shell hidden"><aside class="sidebar"><div class="brand">✳ University OS</div><nav id="nav"></nav></aside><main class="main"><div class="top"><div><small id="eyebrow" class="muted"></small><h1 id="heading">My University</h1></div><div class="actions"><span id="plan" class="tag">FREE</span><button class="btn alt" id="logout">로그아웃</button></div></div><div id="content"></div><p class="muted" style="font-size:11px">University OS · 사용자별 데이터 저장 · 베타</p></main></div>
 <script>window.UNIVERSITY_OS_CONFIG={paymentEnabled:false,priceKrw:7900};</script><script>
 const cfg=window.UNIVERSITY_OS_CONFIG||{};
