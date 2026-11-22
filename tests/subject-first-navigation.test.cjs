@@ -21,6 +21,13 @@ for(const file of ['app.js','demo.html']){
  };
  vm.createContext(ctx);
  vm.runInContext(source.slice(start,end)+'\nthis.journals=journals;this.materials=materials;this.subjectPicker=subjectPicker',ctx);
+
+ test(file+' search preserves unsaved journal and material form values',()=>{
+  assert.match(source,/const activeForm=document\.querySelector\("#journalForm, #materialForm"\)/);
+  assert.match(source,/const draft=activeForm\?Array\.from\(activeForm\.elements\)/);
+  assert.match(source,/el\.value=field\.value/);
+  assert.match(source,/previewMarkdown\(body\.value\)/);
+ });
  test(file+' first journal screen shows courses, not all records',()=>{
   const html=ctx.journals();
   assert.match(html,/Mathematics/);
