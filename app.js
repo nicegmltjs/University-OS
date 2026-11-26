@@ -26,17 +26,18 @@ async function authenticate(create){const email=$("email").value.trim(),password
 }
 function showRecovery(){ $("app").classList.add("hidden");$("auth").classList.remove("hidden");$("auth").innerHTML='<div class="card"><h1>비밀번호 변경</h1><form id="recoveryForm"><label class="field">새 비밀번호<input id="recoveryPassword" type="password" minlength="8" autocomplete="new-password" required></label><button class="btn">비밀번호 변경</button></form><p id="message" aria-live="polite"></p></div>';$("recoveryForm").onsubmit=async e=>{e.preventDefault();const pwd=$("recoveryPassword").value;const {error}=await supa.auth.updateUser({password:pwd});if(error){message(error.message);return;}message("비밀번호가 변경되었습니다. 로그인 후 이용해 주세요.","success");await supa.auth.signOut();setTimeout(authView,250);};}
 async function enter(){await writeQueue.catch(()=>{});const {data:{user:u}}=await supa.auth.getUser();user=u;if(!user){authView();return;}
- const {data:space,error}=await supa.from("workspaces").select("data").eq("user_id",user.id).maybeSingle();
+ const {data:space,error}=await supa.from("workspaces").select("data,updated_at").eq("user_id",user.id).maybeSingle();
  if(error){authView();message("데이터 조회 실패: "+error.message);return;}
  workspace=space?.data&&Array.isArray(space.data.courses)?space.data:defaults();
+ cloudVersion=space?.updated_at??null;
  const {data:ent, error:entError}=await supa.from("entitlements").select("plan,expires_at").eq("user_id",user.id).maybeSingle();
  if(entError){authView();message("구독 상태를 확인할 수 없습니다.");return;}
- plan=ent?.plan==="pro"&&(!ent.expires_at||new Date(ent.expires_at)>new Date())?"pro":"free";
+ plan=ent?.plan==="pro"&&(!!ent.expires_at&&new Date(ent.expires_at)>new Date())?"pro":"free";
  $("auth").classList.add("hidden");$("app").classList.remove("hidden");render();
 }
-let writeQueue=Promise.resolve();
+let writeQueue=Promise.resolve(),cloudVersion=null;
 async function persist(){const snap=structuredClone(workspace),owner=user?.id;if(!owner)return false;
- const job=writeQueue.catch(()=>{}).then(async()=>{const {error}=await supa.from("workspaces").upsert({user_id:owner,data:snap},{onConflict:"user_id"});if(error)throw error;return true;});writeQueue=job.catch(()=>{});
+ const job=writeQueue.catch(()=>{}).then(async()=>{if(user?.id!==owner)throw Error("계정이 변경되었습니다.");const query=cloudVersion===null?supa.from("workspaces").insert({user_id:owner,data:snap}):supa.from("workspaces").update({data:snap}).eq("user_id",owner).eq("updated_at",cloudVersion);const {data,error}=await query.select("updated_at").maybeSingle();if(error)throw error;if(!data)throw Error("다른 기기에서 데이터가 변경되었습니다. 현재 데이터를 백업한 후 다시 로그인해 주세요.");cloudVersion=data.updated_at;return true;});writeQueue=job.catch(()=>{});
  try{return await job;}catch(err){alert("저장 실패: "+err.message);return false;}
 }
 const limits=(k)=>isPro()||!(k in caps)?"무제한":caps[k];
@@ -223,7 +224,7 @@ document.addEventListener("submit",async e=>{const form=e.target;if(!["courseFor
  }finally{delete form.dataset.saving;if(submitButton)submitButton.disabled=false;}});
 document.addEventListener("click",async e=>{
  if(e.target.id==="logout"){await writeQueue.catch(()=>{});const {error}=await supa.auth.signOut();if(error){alert("로그아웃 실패: "+error.message);return;}user=null;workspace=defaults();plan="free";authView();}
- if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const owner=user?.id;await writeQueue.catch(()=>{});if(!owner||owner!==user?.id)return;const {error}=await supa.from("workspaces").delete().eq("user_id",owner);if(error){alert("삭제 실패: "+error.message);return;}workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
+ if(e.target.id==="wipeWorkspace"){const typed=prompt("모든 수업·과제·기록·자료를 삭제하려면 '삭제'라고 입력해 주세요.");if(typed!=="삭제")return;const owner=user?.id;await writeQueue.catch(()=>{});if(!owner||owner!==user?.id)return;if(cloudVersion===null){alert("저장된 데이터가 없습니다. 다시 로그인해 주세요.");return;}const {data,error}=await supa.from("workspaces").delete().eq("user_id",owner).eq("updated_at",cloudVersion).select("user_id").maybeSingle();if(error){alert("삭제 실패: "+error.message);return;}if(!data){alert("다른 기기에서 데이터가 변경되었습니다. 다시 로그인해 주세요.");return;}cloudVersion=null;workspace=defaults();editing=null;page="home";render();alert("학습 데이터가 삭제되었습니다.");}
  if(e.target.id==="export"){const blob=new Blob([JSON.stringify({version:2,data:workspace},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="university-os-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  if(e.target.id==="deleteaccount")alert("계정 및 서버 데이터 삭제 요청은 운영자에게 문의해 주세요. 셀프 삭제 기능은 정식 출시 전에 제공됩니다.");
  if(e.target.id==="checkout"){if(!cfg.paymentEnabled)return;const {data,error}=await supa.functions.invoke("create-checkout",{body:{}});if(error||!data?.checkoutUrl){alert("결제 시작 실패: "+(error?.message||"설정 확인 필요"));return;}location.href=data.checkoutUrl;}
