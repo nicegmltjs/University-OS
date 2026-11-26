@@ -33,11 +33,11 @@ declare p text; expiry timestamptz; counts text[] := array['courses','tasks','jo
 begin
  if jsonb_typeof(new.data) <> 'object' then raise exception 'Workspace must be an object'; end if;
  for i in 1..4 loop
-  if jsonb_typeof(new.data->counts[i]) <> 'array' then raise exception 'Invalid workspace field %',counts[i]; end if;
+  if jsonb_typeof(new.data->counts[i]) is distinct from 'array' then raise exception 'Invalid workspace field %',counts[i]; end if;
  end loop;
  if pg_column_size(new.data)>2000000 then raise exception 'Workspace exceeds maximum size'; end if;
  select plan,expires_at into p,expiry from public.entitlements where user_id=new.user_id;
- if p='pro' and (expiry is null or expiry>now()) then new.updated_at=now(); return new; end if;
+ if p='pro' and expiry>now() then new.updated_at=now(); return new; end if;
  -- A subscription expiry must not lock users out of editing or deleting existing work.
  -- Existing over-quota records may remain, but the count cannot increase after downgrade.
  if jsonb_array_length(new.data->'journals')>20 and (
